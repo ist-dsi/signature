@@ -1,0 +1,7 @@
+
+<renderer type="java.lang.Object" layout="signStuff" class="module.signature.presentationTier.renderers.AppletRenderer" >
+	<property name="code" value="MainWindow.class" />
+	<property name="archive" value="http://zerone.weblusa.org/applet/aeq51.jar,http://zerone.weblusa.org/applet/commons-httpclient-3.0.jar,http://zerone.weblusa.org/applet/commons-logging-1.1.1.jar,http://zerone.weblusa.org/applet/commons-codec-1.3.jar" />
+	<property name="width" value="800" />
+	<property name="height" value="650" />
+</renderer>
