@@ -1,1 +1,18 @@
-/** package module.<PROJECT PACKAGE>.domain; **/
+package module.signature.domain; 
+
+class Signature {
+	String signObjectID;
+	String tokenIn;
+	Boolean tokenInUsed; 
+	String tokenOut;
+	Boolean tokenOutUsed;
+	DateTime expire;
+	DateTime timestamp;
+}
+
+relation SignatureMyOrg {
+	.myorg.domain.MyOrg playsRole myOrg;
+	Signature playsRole signatures {
+		multiplicity *;
+	}
+}
