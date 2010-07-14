@@ -1,18 +1,51 @@
 package module.signature.domain; 
 
 class Signature {
-	String signObjectID;
+	String identification;
+	DateTime timestamp;
+}
+
+class Queue {
+	
+}
+
+class SignatureIntention {
+	String identification;
 	String tokenIn;
 	Boolean tokenInUsed; 
 	String tokenOut;
 	Boolean tokenOutUsed;
 	DateTime expire;
-	DateTime timestamp;
+}
+
+class SignatureIntentionObject extends SignatureIntention {
+}
+
+class SignatureIntentionActivity extends SignatureIntention {
 }
 
 relation SignatureMyOrg {
 	.myorg.domain.MyOrg playsRole myOrg;
 	Signature playsRole signatures {
+		multiplicity *;
+	}
+}
+
+relation SignatureIntentionMyOrg {
+	.myorg.domain.MyOrg playsRole myOrg;
+	SignatureIntention playsRole signatureIntentions {
+		multiplicity *;
+	}
+}
+
+relation QueueUser {
+	.myorg.domain.User playsRole user;
+	Queue playsRole queue;
+}
+
+relation QueueSignIntention {
+	Queue playsRole queue;
+	SignatureIntention playsRole signatureIntentions {
 		multiplicity *;
 	}
 }

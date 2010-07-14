@@ -2,16 +2,14 @@ package module.signature.util;
 
 import java.io.Serializable;
 
-import module.signature.domain.Signature;
-
-import org.joda.time.DateTime;
-
+import module.signature.domain.SignatureIntention;
+import module.signature.domain.SignatureIntentionObject;
 import pt.ist.fenixWebFramework.services.Service;
 
 public class SignatureBean implements Serializable {
 
     private final Signable signObject;
-    private Signature signature;
+    private SignatureIntention signature;
 
     public SignatureBean(Signable signObject) {
 	this.signObject = signObject;
@@ -20,7 +18,7 @@ public class SignatureBean implements Serializable {
 
     @Service
     private void create() {
-	this.signature = new Signature(signObject);
+	this.signature = new SignatureIntentionObject(signObject);
     }
 
     public String getSignID() {
@@ -33,9 +31,5 @@ public class SignatureBean implements Serializable {
 
     public String getTokenOut() {
 	return signature.getTokenOut();
-    }
-
-    public DateTime getTimestamp() {
-	return signature.getTimestamp();
     }
 }

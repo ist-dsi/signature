@@ -7,6 +7,7 @@ import pt.ist.fenixWebFramework.renderers.components.HtmlComponent;
 import pt.ist.fenixWebFramework.renderers.components.HtmlLink;
 import pt.ist.fenixWebFramework.renderers.components.HtmlText;
 import pt.ist.fenixWebFramework.renderers.layouts.Layout;
+import pt.ist.fenixWebFramework.servlets.filters.contentRewrite.GenericChecksumRewriter;
 
 /**
  * The default output renderer for the signature link
@@ -33,20 +34,21 @@ public class SignatureLinkRenderer extends OutputRenderer {
 	    public HtmlComponent createComponent(Object object, Class type) {
 		SignatureBean signBean = (SignatureBean) object;
 
-		HtmlLink link = new HtmlLink();
-		link.setUrl("/signatureAction.do?method=createSignature&objectId=" + signBean.getSignID());
+		HtmlLink preLink = new HtmlLink();
+		preLink.setUrl("/signatureAction.do?method=createSignature&objectId=" + signBean.getSignID());
+
+		String signatureLink = GenericChecksumRewriter.injectChecksumInUrl("", preLink.calculateUrl());
 
 		HtmlBlockContainer container = new HtmlBlockContainer();
 
 		HtmlBlockContainer signLink = new HtmlBlockContainer();
 		signLink.setId("signLink");
 		signLink.addChild(new HtmlText("Assinar Digitalmente"));
-		signLink
-			.setStyle("margin: 5px 0; height: 22px; padding-top: 10px; padding-left: 36px; background:url(http://demo.rockettheme.com/mar10/images/stories/demo/tabs/lock.png) no-repeat left center");
+		signLink.setStyle("margin: 5px 0; height: 22px; padding-top: 10px; padding-left: 36px; background:url(http://demo.rockettheme.com/mar10/images/stories/demo/tabs/lock.png) no-repeat left center");
 
 		HtmlBlockContainer signWindow = new HtmlBlockContainer();
 		signWindow.setId("signWindow");
-		signWindow.addChild(new HtmlText("<iframe src=\"" + link.calculateUrl() + "\"></iframe>", false));
+		signWindow.addChild(new HtmlText("<iframe src=\"" + signatureLink + "\"></iframe>", false));
 
 		container.addChild(signLink);
 		container.addChild(signWindow);
@@ -61,5 +63,4 @@ public class SignatureLinkRenderer extends OutputRenderer {
 	    }
 	};
     }
-
 }

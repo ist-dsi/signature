@@ -4,7 +4,7 @@ import pt.ist.fenixWebFramework.servlets.commons.UploadedFile;
 
 public interface Signable {
 
-    public String getSignID();
+    public String getIdentification();
 
     public String getContentToSign();
 

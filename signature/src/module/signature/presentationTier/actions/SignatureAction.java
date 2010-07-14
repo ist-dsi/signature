@@ -32,7 +32,7 @@ import java.io.OutputStreamWriter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import module.signature.domain.Signature;
+import module.signature.domain.SignatureIntention;
 import myorg.presentationTier.actions.ContextBaseAction;
 
 import org.apache.struts.action.ActionForm;
@@ -46,16 +46,16 @@ import pt.ist.fenixWebFramework.struts.annotations.Mapping;
 @Mapping(path = "/signatureAction")
 public class SignatureAction extends ContextBaseAction {
 
-    protected Signature getSignature(HttpServletRequest request) {
+    protected SignatureIntention getSignatureIntention(HttpServletRequest request) {
 	return getDomainObject(request, "objectId");
     }
 
-    protected void verifyTokenIn(Signature signature, HttpServletRequest request) {
+    protected void verifyTokenIn(SignatureIntention signature, HttpServletRequest request) {
 	String tokenIn = request.getParameter("token");
 	signature.verifyTokenIn(tokenIn);
     }
 
-    protected void verifyTokenOut(Signature signature, HttpServletRequest request) {
+    protected void verifyTokenOut(SignatureIntention signature, HttpServletRequest request) {
 	String tokenOut = request.getParameter("token");
 	signature.verifyTokenOut(tokenOut);
     }
@@ -63,11 +63,11 @@ public class SignatureAction extends ContextBaseAction {
     public ActionForward getLogsToSign(final ActionMapping mapping, final ActionForm form, final HttpServletRequest request,
 	    final HttpServletResponse response) {
 
-	final Signature signature = getSignature(request);
+	final SignatureIntention signatureIntention = getSignatureIntention(request);
 
-	verifyTokenIn(signature, request);
+	verifyTokenIn(signatureIntention, request);
 
-	String generatedFile = signature.getContentToSign();
+	String contentToSign = signatureIntention.getContentToSign();
 
 	try {
 
@@ -75,9 +75,9 @@ public class SignatureAction extends ContextBaseAction {
 	    OutputStreamWriter streamWriter = new OutputStreamWriter(outputStream, "UTF-8");
 
 	    response.setContentType("text/plain");
-	    response.setContentLength(generatedFile.getBytes().length);
+	    response.setContentLength(contentToSign.getBytes().length);
 
-	    streamWriter.write(generatedFile);
+	    streamWriter.write(contentToSign);
 	    streamWriter.flush();
 	    streamWriter.close();
 
@@ -91,7 +91,7 @@ public class SignatureAction extends ContextBaseAction {
     public ActionForward receiveSignature(final ActionMapping mapping, final ActionForm form, final HttpServletRequest request,
 	    final HttpServletResponse response) {
 
-	final Signature signature = getSignature(request);
+	final SignatureIntention signature = getSignatureIntention(request);
 
 	verifyTokenOut(signature, request);
 
