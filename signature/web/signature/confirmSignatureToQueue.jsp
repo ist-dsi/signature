@@ -7,5 +7,4 @@
 <%@page import="module.workflow.presentationTier.WorkflowLayoutContext"%>
 <%@page import="myorg.presentationTier.actions.ContextBaseAction"%>
 
-
-<fr:view name="signIntention" layout="signatureBox" />
+adicionado à queue :)

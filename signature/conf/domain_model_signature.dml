@@ -5,7 +5,7 @@ class Signature {
 	DateTime timestamp;
 }
 
-class Queue {
+class SignatureQueue {
 	
 }
 
@@ -40,11 +40,11 @@ relation SignatureIntentionMyOrg {
 
 relation QueueUser {
 	.myorg.domain.User playsRole user;
-	Queue playsRole queue;
+	SignatureQueue playsRole signatureQueue;
 }
 
 relation QueueSignIntention {
-	Queue playsRole queue;
+	SignatureQueue playsRole signatureQueue;
 	SignatureIntention playsRole signatureIntentions {
 		multiplicity *;
 	}
