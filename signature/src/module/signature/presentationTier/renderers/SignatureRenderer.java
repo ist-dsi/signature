@@ -2,12 +2,11 @@ package module.signature.presentationTier.renderers;
 
 import javax.servlet.http.HttpServletRequest;
 
-import module.signature.util.SignatureBean;
+import module.signature.domain.SignatureIntention;
 import pt.ist.fenixWebFramework.renderers.OutputRenderer;
 import pt.ist.fenixWebFramework.renderers.components.HtmlApplet;
 import pt.ist.fenixWebFramework.renderers.components.HtmlBlockContainer;
 import pt.ist.fenixWebFramework.renderers.components.HtmlComponent;
-import pt.ist.fenixWebFramework.renderers.components.HtmlText;
 import pt.ist.fenixWebFramework.renderers.layouts.Layout;
 import pt.ist.fenixWebFramework.renderers.plugin.RenderersRequestProcessorImpl;
 
@@ -46,7 +45,7 @@ public class SignatureRenderer extends OutputRenderer {
 
 	    @Override
 	    public HtmlComponent createComponent(Object object, Class type) {
-		SignatureBean signBean = (SignatureBean) object;
+		SignatureIntention signIntention = (SignatureIntention) object;
 
 		HttpServletRequest request = RenderersRequestProcessorImpl.getCurrentRequest();
 		String scheme = request.getScheme(); // http
@@ -56,8 +55,8 @@ public class SignatureRenderer extends OutputRenderer {
 
 		String baseURL = scheme + "://" + serverName + ":" + serverPort + contextPath + "/signatureAction.do?";
 
-		String defaultGetContentURL = baseURL + "method=getLogsToSign&objectId=" + signBean.getSignID();
-		String defaultServerURL = baseURL + "method=receiveSignature&objectId=" + signBean.getSignID();
+		String defaultGetContentURL = baseURL + "method=getLogsToSign&objectId=" + signIntention.getExternalId();
+		String defaultServerURL = baseURL + "method=receiveSignature&objectId=" + signIntention.getExternalId();
 
 		HtmlApplet applet = new HtmlApplet();
 
@@ -68,34 +67,16 @@ public class SignatureRenderer extends OutputRenderer {
 
 		applet.setProperty("signContentURL", defaultGetContentURL);
 		applet.setProperty("serverURL", defaultServerURL);
-		applet.setProperty("tokenIn", signBean.getTokenIn());
-		applet.setProperty("tokenOut", signBean.getTokenOut());
-
-		/*
-		 * <div> <div id="signLink">..</div> <div id="signWindow">
-		 * ..applet..</div> <script>..</script>< /div>
-		 */
+		applet.setProperty("tokenIn", signIntention.getTokenIn());
+		applet.setProperty("tokenOut", signIntention.getTokenOut());
 
 		HtmlBlockContainer container = new HtmlBlockContainer();
-
-		HtmlBlockContainer signLink = new HtmlBlockContainer();
-		signLink.setId("signLink");
-		signLink.addChild(new HtmlText("Assinar Digitalmente"));
-		signLink
-			.setStyle("margin: 5px 0; height: 22px; padding-top: 10px; padding-left: 36px; background:url(http://demo.rockettheme.com/mar10/images/stories/demo/tabs/lock.png) no-repeat left center");
 
 		HtmlBlockContainer signWindow = new HtmlBlockContainer();
 		signWindow.setId("signWindow");
 		signWindow.addChild(applet);
 
-		container.addChild(signLink);
 		container.addChild(signWindow);
-		container
-			.addChild(new HtmlText(
-				"<script type=\"text/javascript\">"
-					+ "$(function() { $(\"#signWindow\").dialog({ autoOpen: false, title: 'Assinatura Digital', width: 820, height: 710, resizable: false, draggable: false }); });"
-					+ "$(\"#signLink\").click(function() { $(\"#signWindow\").dialog('open');});"
-					+ "</script>", false));
 
 		return container;
 	    }

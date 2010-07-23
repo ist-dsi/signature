@@ -9,23 +9,18 @@ import org.joda.time.DateTime;
 import pt.ist.fenixWebFramework.services.Service;
 import pt.ist.fenixWebFramework.servlets.commons.UploadedFile;
 
-abstract public class SignatureIntention extends SignatureIntention_Base {
+abstract public class SignatureIntention<T extends Signable> extends SignatureIntention_Base {
 
     final static int EXPIRE_MINUTES = 10;
 
     public SignatureIntention() {
 	super();
+
+	init();
     }
 
-    public SignatureIntention(Signable signObject) {
-	super();
-
-	init(signObject);
-    }
-
-    protected void init(Signable signObject) {
+    protected void init() {
 	setMyOrg(MyOrg.getInstance());
-	setIdentification(signObject.getIdentification());
 
 	setTokenInUsed(false);
 	setTokenOutUsed(false);
@@ -35,20 +30,13 @@ abstract public class SignatureIntention extends SignatureIntention_Base {
     }
 
     @Service
-    final public void finalizeSignature(UploadedFile file0, UploadedFile file1) {
-	Signable signable = getSignObject();
-	signable.receiveSignature(file0, file1);
+    abstract public void finalizeSignature(UploadedFile file0, UploadedFile file1);
 
-	new Signature(signable);
-    }
+    abstract public T getSignObject();
 
     private void generateTokens() {
 	setTokenIn(RandomStringUtils.randomAlphanumeric(32));
 	setTokenOut(RandomStringUtils.randomAlphanumeric(32));
-    }
-
-    public Signable getSignObject() {
-	return (Signable) fromExternalId(getIdentification());
     }
 
     public String getContentToSign() {

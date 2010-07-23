@@ -32,7 +32,11 @@ import java.io.OutputStreamWriter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import module.signature.domain.Queue;
 import module.signature.domain.SignatureIntention;
+import module.signature.util.Signable;
+import myorg.applicationTier.Authenticate.UserView;
+import myorg.domain.User;
 import myorg.presentationTier.actions.ContextBaseAction;
 
 import org.apache.struts.action.ActionForm;
@@ -44,26 +48,36 @@ import pt.ist.fenixWebFramework.servlets.commons.UploadedFile;
 import pt.ist.fenixWebFramework.struts.annotations.Mapping;
 
 @Mapping(path = "/signatureAction")
-public class SignatureAction extends ContextBaseAction {
+public class SignatureAction<T extends Signable> extends ContextBaseAction {
 
-    protected SignatureIntention getSignatureIntention(HttpServletRequest request) {
-	return getDomainObject(request, "objectId");
-    }
+    boolean QUEUE_ACTIVE = true;
 
-    protected void verifyTokenIn(SignatureIntention signature, HttpServletRequest request) {
-	String tokenIn = request.getParameter("token");
-	signature.verifyTokenIn(tokenIn);
-    }
+    public ActionForward createSignature(final ActionMapping mapping, final ActionForm form, final HttpServletRequest request,
+	    final HttpServletResponse response) {
 
-    protected void verifyTokenOut(SignatureIntention signature, HttpServletRequest request) {
-	String tokenOut = request.getParameter("token");
-	signature.verifyTokenOut(tokenOut);
+	final SignatureIntention<T> signIntention = getSignatureIntention(request);
+
+	if (QUEUE_ACTIVE) {
+
+	    User user = UserView.getCurrentUser();
+	    Queue queue = user.getQueue();
+
+	    queue.push(signIntention);
+
+	    System.out.println("Queue: " + user.getQueue().getSignatureIntentionsCount() + " items");
+
+	    return forward(request, "/signature/confirmSignatureToQueue.jsp");
+	}
+
+	request.setAttribute("signIntention", signIntention);
+
+	return forward(request, "/signature/createSignature.jsp");
     }
 
     public ActionForward getLogsToSign(final ActionMapping mapping, final ActionForm form, final HttpServletRequest request,
 	    final HttpServletResponse response) {
 
-	final SignatureIntention signatureIntention = getSignatureIntention(request);
+	final SignatureIntention<T> signatureIntention = getSignatureIntention(request);
 
 	verifyTokenIn(signatureIntention, request);
 
@@ -128,10 +142,18 @@ public class SignatureAction extends ContextBaseAction {
 	return null;
     }
 
-    public ActionForward createSignature(final ActionMapping mapping, final ActionForm form, final HttpServletRequest request,
-	    final HttpServletResponse response) {
+    protected SignatureIntention<T> getSignatureIntention(HttpServletRequest request) {
+	return getDomainObject(request, "objectId");
+    }
 
-	return new ActionForward("/signature/createSignature.jsp");
+    protected void verifyTokenIn(SignatureIntention<T> signature, HttpServletRequest request) {
+	String tokenIn = request.getParameter("token");
+	signature.verifyTokenIn(tokenIn);
+    }
+
+    protected void verifyTokenOut(SignatureIntention<T> signature, HttpServletRequest request) {
+	String tokenOut = request.getParameter("token");
+	signature.verifyTokenOut(tokenOut);
     }
 
 }

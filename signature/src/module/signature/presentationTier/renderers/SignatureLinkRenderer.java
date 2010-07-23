@@ -1,6 +1,6 @@
 package module.signature.presentationTier.renderers;
 
-import module.signature.util.SignatureBean;
+import module.signature.domain.SignatureIntention;
 import pt.ist.fenixWebFramework.renderers.OutputRenderer;
 import pt.ist.fenixWebFramework.renderers.components.HtmlBlockContainer;
 import pt.ist.fenixWebFramework.renderers.components.HtmlComponent;
@@ -32,10 +32,10 @@ public class SignatureLinkRenderer extends OutputRenderer {
 
 	    @Override
 	    public HtmlComponent createComponent(Object object, Class type) {
-		SignatureBean signBean = (SignatureBean) object;
+		SignatureIntention signIntention = (SignatureIntention) object;
 
 		HtmlLink preLink = new HtmlLink();
-		preLink.setUrl("/signatureAction.do?method=createSignature&objectId=" + signBean.getSignID());
+		preLink.setUrl("/signatureAction.do?method=createSignature&objectId=" + signIntention.getExternalId());
 
 		String signatureLink = GenericChecksumRewriter.injectChecksumInUrl("", preLink.calculateUrl());
 
@@ -48,7 +48,8 @@ public class SignatureLinkRenderer extends OutputRenderer {
 
 		HtmlBlockContainer signWindow = new HtmlBlockContainer();
 		signWindow.setId("signWindow");
-		signWindow.addChild(new HtmlText("<iframe src=\"" + signatureLink + "\"></iframe>", false));
+		signWindow.addChild(new HtmlText("<iframe style=\"width: 820px; height: 710px\" src=\"" + signatureLink
+			+ "\"></iframe>", false));
 
 		container.addChild(signLink);
 		container.addChild(signWindow);
