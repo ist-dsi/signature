@@ -39,25 +39,36 @@ public class SignatureRenderer extends OutputRenderer {
 	this.bundle = bundle;
     }
 
+    private String getBaseURL() {
+	HttpServletRequest request = RenderersRequestProcessorImpl.getCurrentRequest();
+	String scheme = request.getScheme(); // http
+	String serverName = request.getServerName(); // hostname.com
+	int serverPort = request.getServerPort(); // 80
+	String contextPath = request.getContextPath(); // /mywebapp
+
+	return scheme + "://" + serverName + ":" + serverPort + contextPath + "/signatureAction.do?";
+    }
+
+    protected String generateContentUrl(Object object) {
+	SignatureIntention signIntention = (SignatureIntention) object;
+
+	return getBaseURL() + "method=getLogsToSign&objectId=" + signIntention.getExternalId() + "&token="
+		+ signIntention.getTokenIn();
+    }
+
+    protected String generateServerUrl(Object object) {
+	SignatureIntention signIntention = (SignatureIntention) object;
+
+	return getBaseURL() + "method=receiveSignature&objectId=" + signIntention.getExternalId() + "&token="
+		+ signIntention.getTokenOut();
+    }
+
     @Override
     protected Layout getLayout(Object object, Class type) {
 	return new Layout() {
 
 	    @Override
 	    public HtmlComponent createComponent(Object object, Class type) {
-		SignatureIntention signIntention = (SignatureIntention) object;
-
-		HttpServletRequest request = RenderersRequestProcessorImpl.getCurrentRequest();
-		String scheme = request.getScheme(); // http
-		String serverName = request.getServerName(); // hostname.com
-		int serverPort = request.getServerPort(); // 80
-		String contextPath = request.getContextPath(); // /mywebapp
-
-		String baseURL = scheme + "://" + serverName + ":" + serverPort + contextPath + "/signatureAction.do?";
-
-		String defaultGetContentURL = baseURL + "method=getLogsToSign&objectId=" + signIntention.getExternalId();
-		String defaultServerURL = baseURL + "method=receiveSignature&objectId=" + signIntention.getExternalId();
-
 		HtmlApplet applet = new HtmlApplet();
 
 		applet.setCode(getCode());
@@ -65,17 +76,14 @@ public class SignatureRenderer extends OutputRenderer {
 		applet.setWidth(getWidth());
 		applet.setHeight(getHeight());
 
-		applet.setProperty("signContentURL", defaultGetContentURL);
-		applet.setProperty("serverURL", defaultServerURL);
-		applet.setProperty("tokenIn", signIntention.getTokenIn());
-		applet.setProperty("tokenOut", signIntention.getTokenOut());
-
-		HtmlBlockContainer container = new HtmlBlockContainer();
+		applet.setProperty("signContentURL", generateContentUrl(object));
+		applet.setProperty("serverURL", generateServerUrl(object));
 
 		HtmlBlockContainer signWindow = new HtmlBlockContainer();
 		signWindow.setId("signWindow");
 		signWindow.addChild(applet);
 
+		HtmlBlockContainer container = new HtmlBlockContainer();
 		container.addChild(signWindow);
 
 		return container;
