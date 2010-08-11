@@ -16,12 +16,20 @@ class SignatureIntention {
 	String tokenOut;
 	Boolean tokenOutUsed;
 	DateTime expire;
+	Boolean sealed;
+	DateTime sealedDateTime;
+}
+
+class SignatureIntentionMulti extends SignatureIntention {
 }
 
 class SignatureIntentionObject extends SignatureIntention {
 }
 
 class SignatureIntentionActivity extends SignatureIntention {
+	String processId;
+	String activityId;
+	String information;
 }
 
 relation SignatureMyOrg {
@@ -38,6 +46,13 @@ relation SignatureIntentionMyOrg {
 	}
 }
 
+relation SignatureIntentionUser {
+	.myorg.domain.User playsRole user;
+	SignatureIntention playsRole signatureIntentions {
+		multiplicity *;
+	}
+}
+
 relation QueueUser {
 	.myorg.domain.User playsRole user;
 	SignatureQueue playsRole signatureQueue;
@@ -45,6 +60,13 @@ relation QueueUser {
 
 relation QueueSignIntention {
 	SignatureQueue playsRole signatureQueue;
+	SignatureIntention playsRole signatureIntentions {
+		multiplicity *;
+	}
+}
+
+relation SignIntentionMulti {
+	SignatureIntentionMulti playsRole;
 	SignatureIntention playsRole signatureIntentions {
 		multiplicity *;
 	}

@@ -1,0 +1,7 @@
+<schema name="viewSignature" type="module.signature.domain.SignatureIntention">
+	<slot name="identification" />
+	<slot name="user" />
+	<slot name="sealed" />
+	<slot name="sealedDateTime" />
+</schema>
+
