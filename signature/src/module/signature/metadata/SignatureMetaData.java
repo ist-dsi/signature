@@ -1,6 +1,5 @@
 package module.signature.metadata;
 
-import module.signature.util.exporter.SignatureExporter;
 
 public abstract class SignatureMetaData<T> {
 
@@ -9,7 +8,5 @@ public abstract class SignatureMetaData<T> {
     }
 
     abstract protected void transverse(T t);
-
-    abstract public void accept(SignatureExporter signatureExporter);
 
 }

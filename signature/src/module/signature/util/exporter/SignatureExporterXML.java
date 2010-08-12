@@ -61,6 +61,7 @@ public class SignatureExporterXML implements SignatureExporter {
     @Override
     public void addParent(String prefix, String id) {
 	Element child = doc.createElement("parent");
+
 	child.setAttribute("id", id);
 	child.setTextContent(prefix);
 	root.appendChild(child);

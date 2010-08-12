@@ -5,7 +5,6 @@ import module.signature.metadata.SignatureMetaDataActivity;
 import module.workflow.activities.ActivityInformation;
 import module.workflow.activities.WorkflowActivity;
 import module.workflow.domain.ActivityLog;
-import module.workflow.domain.WorkflowLog;
 import module.workflow.domain.WorkflowProcess;
 import pt.ist.fenixWebFramework.services.Service;
 import pt.ist.fenixWebFramework.servlets.commons.UploadedFile;
@@ -15,21 +14,21 @@ public class SignatureIntentionActivity<P extends WorkflowProcess, AI extends Ac
 
     @Service
     public static <P extends WorkflowProcess, AI extends ActivityInformation<P>> SignatureIntentionActivity<P, AI> factory(
-	    P process, WorkflowActivity<P, AI> activity, AI ai) {
-	return new SignatureIntentionActivity<P, AI>(process, activity, ai);
+	    ActivityLog log, P process, WorkflowActivity<P, AI> activity, AI ai) {
+	return new SignatureIntentionActivity<P, AI>(log, process, activity, ai);
     }
 
-    public SignatureIntentionActivity(P process, WorkflowActivity<P, AI> activity, AI ai) {
+    public SignatureIntentionActivity(ActivityLog log, P process, WorkflowActivity<P, AI> activity, AI ai) {
 	super();
 
-	init(process, activity, ai);
+	init(log, process, activity, ai);
     }
 
-    protected void init(P process, WorkflowActivity<P, AI> activity, AI ai) {
+    protected void init(ActivityLog log, P process, WorkflowActivity<P, AI> activity, AI ai) {
+	setIdentification(log.getIdentification());
+
 	setProcessId(process.getExternalId());
 	setActivityId(activity.getName());
-
-	setIdentification(getProcessId() + getActivityId());
     }
 
     protected P getProcess() {
@@ -46,7 +45,7 @@ public class SignatureIntentionActivity<P extends WorkflowProcess, AI extends Ac
     }
 
     @Override
-    public WorkflowLog getSignObject() {
+    public ActivityLog getSignObject() {
 	return fromExternalId(getIdentification());
     }
 
@@ -62,9 +61,8 @@ public class SignatureIntentionActivity<P extends WorkflowProcess, AI extends Ac
 
     @Override
     protected void finalizeSignature(UploadedFile file0, UploadedFile file1) {
-	ActivityLog activityLog = getActivity().execute(getActivityInformation());
+	getActivity().execute(getActivityInformation(), getSignObject());
 
-	setIdentification(activityLog.getIdentification());
 	setRelation(this);
     }
 

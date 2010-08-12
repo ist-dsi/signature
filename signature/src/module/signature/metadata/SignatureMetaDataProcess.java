@@ -3,14 +3,18 @@ package module.signature.metadata;
 import java.util.ArrayList;
 import java.util.List;
 
-import module.signature.util.exporter.SignatureExporter;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
+
 import module.workflow.domain.WorkflowLog;
 import module.workflow.domain.WorkflowProcess;
 
+@XmlRootElement(name = "process")
+@XmlType
 public class SignatureMetaDataProcess extends SignatureMetaData<WorkflowProcess> {
 
     private String processId;
-    private List<SignatureMetaDataLog> logs;
+    private List<SignatureMetaDataActivityLog> logs;
 
     public SignatureMetaDataProcess(WorkflowProcess process) {
 	super(process);
@@ -20,19 +24,10 @@ public class SignatureMetaDataProcess extends SignatureMetaData<WorkflowProcess>
     protected void transverse(WorkflowProcess process) {
 	processId = process.getExternalId();
 
-	logs = new ArrayList<SignatureMetaDataLog>();
+	logs = new ArrayList<SignatureMetaDataActivityLog>();
 
 	for (WorkflowLog log : process.getExecutionLogs()) {
-	    logs.add(new SignatureMetaDataLog(log));
-	}
-    }
-
-    @Override
-    public void accept(SignatureExporter signatureExporter) {
-	signatureExporter.addParent("process", getProcessId());
-
-	for (SignatureMetaDataLog log : getLogs()) {
-	    signatureExporter.addItem(log);
+	    logs.add(new SignatureMetaDataActivityLog(log));
 	}
     }
 
@@ -40,8 +35,16 @@ public class SignatureMetaDataProcess extends SignatureMetaData<WorkflowProcess>
 	return processId;
     }
 
-    public List<SignatureMetaDataLog> getLogs() {
+    public void setProcessId(String processId) {
+	this.processId = processId;
+    }
+
+    public List<SignatureMetaDataActivityLog> getLogs() {
 	return logs;
+    }
+
+    public void setLogs(List<SignatureMetaDataActivityLog> logs) {
+	this.logs = logs;
     }
 
 }

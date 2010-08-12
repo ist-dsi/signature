@@ -54,7 +54,7 @@ import pt.ist.fenixWebFramework.struts.annotations.Mapping;
 @Mapping(path = "/signatureAction")
 public class SignatureAction extends ContextBaseAction {
 
-    boolean QUEUE_ACTIVE = true;
+    boolean QUEUE_ACTIVE = false;
     boolean TOKENS_ACTIVE = false;
 
     protected SignatureQueue getQueue() {

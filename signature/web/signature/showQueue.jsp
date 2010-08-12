@@ -10,7 +10,7 @@
 <bean:write name="signIntention" property="signatureIntentionsCount" /> items
 
 <logic:iterate id="queueItem" name="signIntention" property="signatureIntentions">
-	<li><bean:write name="queueItem" property="identification" /></li>
+	<li><bean:write name="queueItem" property="identification" /> (<bean:write name="queueItem" property="signObject.class" />)</li>
 </logic:iterate>
 
 <fr:view name="signIntention" layout="signatureBox" />
