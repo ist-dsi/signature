@@ -5,7 +5,6 @@ import module.signature.metadata.SignatureMetaDataMulti;
 import module.signature.util.Signable;
 import module.signature.util.exporter.SignatureExporter;
 import pt.ist.fenixWebFramework.services.Service;
-import pt.ist.fenixWebFramework.servlets.commons.UploadedFile;
 
 public class SignatureIntentionMulti extends SignatureIntentionMulti_Base {
 
@@ -33,7 +32,7 @@ public class SignatureIntentionMulti extends SignatureIntentionMulti_Base {
 
     @Override
     public SignatureMetaData getMetaData() {
-	return new SignatureMetaDataMulti(getSignatureIntentions());
+	return new SignatureMetaDataMulti(this);
     }
 
     @Override
@@ -51,12 +50,10 @@ public class SignatureIntentionMulti extends SignatureIntentionMulti_Base {
     }
 
     @Override
-    protected void finalizeSignature(UploadedFile file0, UploadedFile file1) {
+    protected void finalizeSignature() {
 	for (SignatureIntention signIntention : getSignatureIntentions()) {
-	    signIntention.sealSignature(file0, file1);
+	    signIntention.finalizeSignature();
 	}
-
-	setRelation(this);
     }
 
 }

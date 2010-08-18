@@ -1,42 +1,43 @@
 package module.signature.domain;
 
 import module.signature.metadata.SignatureMetaData;
-import module.signature.metadata.SignatureMetaDataActivity;
+import module.signature.metadata.SignatureMetaDataWorkflowLog;
 import module.workflow.activities.ActivityInformation;
 import module.workflow.activities.WorkflowActivity;
 import module.workflow.domain.ActivityLog;
 import module.workflow.domain.WorkflowProcess;
 import pt.ist.fenixWebFramework.services.Service;
-import pt.ist.fenixWebFramework.servlets.commons.UploadedFile;
 
 public class SignatureIntentionActivity<P extends WorkflowProcess, AI extends ActivityInformation<P>> extends
 	SignatureIntentionActivity_Base {
 
     @Service
     public static <P extends WorkflowProcess, AI extends ActivityInformation<P>> SignatureIntentionActivity<P, AI> factory(
-	    ActivityLog log, P process, WorkflowActivity<P, AI> activity, AI ai) {
-	return new SignatureIntentionActivity<P, AI>(log, process, activity, ai);
+	    ActivityLog log, AI ai) {
+	return new SignatureIntentionActivity<P, AI>(log, ai);
     }
 
-    public SignatureIntentionActivity(ActivityLog log, P process, WorkflowActivity<P, AI> activity, AI ai) {
+    public SignatureIntentionActivity(ActivityLog log, AI ai) {
 	super();
 
-	init(log, process, activity, ai);
+	init(log, ai);
     }
 
-    protected void init(ActivityLog log, P process, WorkflowActivity<P, AI> activity, AI ai) {
-	setIdentification(log.getIdentification());
+    protected void init(ActivityLog log, AI ai) {
+	super.init(log);
+    }
 
-	setProcessId(process.getExternalId());
-	setActivityId(activity.getName());
+    @Override
+    public ActivityLog getSignObject() {
+	return fromExternalId(getIdentification());
     }
 
     protected P getProcess() {
-	return (P) ((WorkflowProcess) fromExternalId(getProcessId()));
+	return (P) getSignObject().getProcess();
     }
 
     protected WorkflowActivity<P, AI> getActivity() {
-	return getProcess().getActivity(getActivityId());
+	return getProcess().getActivity(getSignObject().getOperation());
     }
 
     @SuppressWarnings("unchecked")
@@ -45,8 +46,8 @@ public class SignatureIntentionActivity<P extends WorkflowProcess, AI extends Ac
     }
 
     @Override
-    public ActivityLog getSignObject() {
-	return fromExternalId(getIdentification());
+    public SignatureMetaData getMetaData() {
+	return new SignatureMetaDataWorkflowLog(getSignObject(), getProcess());
     }
 
     @Override
@@ -55,15 +56,9 @@ public class SignatureIntentionActivity<P extends WorkflowProcess, AI extends Ac
     }
 
     @Override
-    public SignatureMetaData getMetaData() {
-	return new SignatureMetaDataActivity(getProcess(), getActivity());
-    }
-
-    @Override
-    protected void finalizeSignature(UploadedFile file0, UploadedFile file1) {
+    protected void finalizeSignature() {
 	getActivity().execute(getActivityInformation(), getSignObject());
-
-	setRelation(this);
+	getSignObject().updateWhenOperationWasRan();
     }
 
 }

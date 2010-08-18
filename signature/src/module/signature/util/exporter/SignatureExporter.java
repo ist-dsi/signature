@@ -4,11 +4,6 @@ import module.signature.metadata.SignatureMetaData;
 
 public interface SignatureExporter {
 
-    public String export() throws ExporterException;
+    public String export(SignatureMetaData sign) throws ExporterException;
 
-    public void addParent(String prefix, String id);
-
-    public void addItem(SignatureMetaData signable);
-
-    public void addItem(String s);
 }

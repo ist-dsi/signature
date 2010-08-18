@@ -35,6 +35,8 @@ import javax.servlet.http.HttpServletResponse;
 import module.signature.domain.SignatureIntention;
 import module.signature.domain.SignatureIntentionMulti;
 import module.signature.domain.SignatureQueue;
+import module.signature.domain.SignatureSystem;
+import module.signature.metadata.SignatureMetaDataRoot;
 import module.signature.util.exporter.ExporterException;
 import module.signature.util.exporter.SignatureExporter;
 import module.signature.util.exporter.SignatureExporterXML;
@@ -54,7 +56,6 @@ import pt.ist.fenixWebFramework.struts.annotations.Mapping;
 @Mapping(path = "/signatureAction")
 public class SignatureAction extends ContextBaseAction {
 
-    boolean QUEUE_ACTIVE = false;
     boolean TOKENS_ACTIVE = false;
 
     protected SignatureQueue getQueue() {
@@ -67,7 +68,7 @@ public class SignatureAction extends ContextBaseAction {
 
 	final SignatureIntention signIntention = getSignatureIntention(request);
 
-	if (QUEUE_ACTIVE) {
+	if (SignatureSystem.hasQueue()) {
 
 	    getQueue().push(signIntention);
 
@@ -82,11 +83,12 @@ public class SignatureAction extends ContextBaseAction {
     public ActionForward showQueue(final ActionMapping mapping, final ActionForm form, final HttpServletRequest request,
 	    final HttpServletResponse response) {
 
-	if (QUEUE_ACTIVE) {
+	if (SignatureSystem.hasQueue()) {
+	    if (getQueue().getSignatureIntentionsCount() > 0) {
+		SignatureIntentionMulti signIntention = SignatureIntentionMulti.factory(getQueue());
 
-	    SignatureIntentionMulti signIntention = SignatureIntentionMulti.factory(getQueue());
-
-	    request.setAttribute("signIntention", signIntention);
+		request.setAttribute("signIntention", signIntention);
+	    }
 	}
 
 	return forward(request, "/signature/showQueue.jsp");
@@ -95,7 +97,7 @@ public class SignatureAction extends ContextBaseAction {
     public ActionForward clearQueue(final ActionMapping mapping, final ActionForm form, final HttpServletRequest request,
 	    final HttpServletResponse response) {
 
-	if (QUEUE_ACTIVE) {
+	if (SignatureSystem.hasQueue()) {
 
 	    getQueue().clear();
 	}
@@ -134,8 +136,8 @@ public class SignatureAction extends ContextBaseAction {
 
 	try {
 	    SignatureExporter signExporter = new SignatureExporterXML();
-	    signatureIntention.getContentToSign(signExporter);
-	    String contentToSign = signExporter.export();
+	    SignatureMetaDataRoot signRoot = new SignatureMetaDataRoot(signatureIntention);
+	    String contentToSign = signExporter.export(signRoot);
 
 	    OutputStream outputStream = response.getOutputStream();
 	    OutputStreamWriter streamWriter = new OutputStreamWriter(outputStream, "UTF-8");
@@ -147,10 +149,12 @@ public class SignatureAction extends ContextBaseAction {
 	    streamWriter.flush();
 	    streamWriter.close();
 
-	} catch (ExporterException e) {
-	    e.printStackTrace();
 	} catch (IOException e) {
 	    e.printStackTrace();
+	} catch (ExporterException e) {
+	    e.printStackTrace();
+	} catch (NullPointerException ex) {
+	    ex.printStackTrace();
 	}
 
 	return null;
@@ -170,19 +174,19 @@ public class SignatureAction extends ContextBaseAction {
 	    outputStream = response.getOutputStream();
 	    OutputStreamWriter streamWriter = new OutputStreamWriter(outputStream, "UTF-8");
 
-	    System.out.println("--- Receive Signature");
 	    streamWriter.write("--- Receive Signature");
 
 	    UploadedFile uploadedFile0 = RenderersRequestProcessorImpl.getUploadedFile("file0");
 	    UploadedFile uploadedFile1 = RenderersRequestProcessorImpl.getUploadedFile("file1");
 
-	    System.out.println("file0:" + new String(uploadedFile0.getFileData()));
-	    System.out.println("file1:" + new String(uploadedFile1.getFileData()));
-
 	    signIntention.sealSignature(uploadedFile0, uploadedFile1);
 
+	    System.out.println("file0: ");
+	    System.out.println("---" + new String(uploadedFile0.getFileData()) + "---");
+	    System.out.println("file1: ");
+	    System.out.println("---" + new String(uploadedFile1.getFileData()) + "---");
+
 	    streamWriter.write("--- Finish Signature");
-	    System.out.println("--- Finish Signature");
 
 	    streamWriter.flush();
 	    streamWriter.close();
@@ -193,7 +197,7 @@ public class SignatureAction extends ContextBaseAction {
 	    e.printStackTrace();
 	}
 
-	if (QUEUE_ACTIVE) {
+	if (SignatureSystem.hasQueue()) {
 
 	    getQueue().clear();
 	}

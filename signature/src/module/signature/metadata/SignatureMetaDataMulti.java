@@ -3,31 +3,41 @@ package module.signature.metadata;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlElementRef;
+import javax.xml.bind.annotation.XmlElementRefs;
+import javax.xml.bind.annotation.XmlRootElement;
+
 import module.signature.domain.SignatureIntention;
-import module.signature.util.exporter.SignatureExporter;
+import module.signature.domain.SignatureIntentionMulti;
 
-public class SignatureMetaDataMulti extends SignatureMetaData<List<SignatureIntention>> {
+@XmlRootElement(name = "multi")
+public class SignatureMetaDataMulti extends SignatureMetaData<SignatureIntentionMulti> {
 
+    @XmlElementRefs({ @XmlElementRef(type = SignatureMetaDataProcess.class),
+	    @XmlElementRef(type = SignatureMetaDataWorkflowLog.class), @XmlElementRef(type = SignatureMetaDataActivityLog.class) })
     private List<SignatureMetaData> list;
 
-    public SignatureMetaDataMulti(List<SignatureIntention> list) {
-	super(list);
+    public SignatureMetaDataMulti() {
+	super();
     }
 
-    @Override
-    protected void transverse(List<SignatureIntention> signIntentions) {
-	list = new ArrayList<SignatureMetaData>();
+    public SignatureMetaDataMulti(SignatureIntentionMulti signature) {
+	super(signature);
 
-	for (SignatureIntention si : signIntentions) {
-	    list.add(si.getMetaData());
+	setIdentification(signature.getIdentification());
+	setList(new ArrayList<SignatureMetaData>());
+
+	for (SignatureIntention si : signature.getSignatureIntentions()) {
+	    getList().add(si.getMetaData());
 	}
     }
 
-    @Override
-    public void accept(SignatureExporter signatureExporter) {
-	for (SignatureMetaData metaData : list) {
-	    metaData.accept(signatureExporter);
-	}
+    public List<SignatureMetaData> getList() {
+	return list;
+    }
+
+    public void setList(List<SignatureMetaData> list) {
+	this.list = list;
     }
 
 }

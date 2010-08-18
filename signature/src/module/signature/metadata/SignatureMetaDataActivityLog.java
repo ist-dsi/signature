@@ -2,28 +2,28 @@ package module.signature.metadata;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-import module.workflow.domain.WorkflowLog;
+import module.workflow.domain.ActivityLog;
+import module.workflow.domain.WorkflowProcess;
 
-@XmlRootElement(name = "activityLog")
-public class SignatureMetaDataActivityLog extends SignatureMetaData<WorkflowLog> {
+@XmlRootElement
+public class SignatureMetaDataActivityLog extends SignatureMetaDataWorkflowLog {
 
-    private String description;
+    private String operationName;
 
-    public SignatureMetaDataActivityLog(WorkflowLog log) {
-	super(log);
+    public SignatureMetaDataActivityLog() {
+	super();
     }
 
-    @Override
-    protected void transverse(WorkflowLog log) {
-	description = log.getDescription();
+    public SignatureMetaDataActivityLog(ActivityLog log, WorkflowProcess process) {
+	super(log, process);
     }
 
-    public String getDescription() {
-	return description;
+    public String getOperationName() {
+	return operationName;
     }
 
-    public void setDescription(String description) {
-	this.description = description;
+    public void setOperationName(String operationName) {
+	this.operationName = operationName;
     }
 
 }

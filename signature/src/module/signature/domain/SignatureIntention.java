@@ -2,9 +2,9 @@ package module.signature.domain;
 
 import module.signature.metadata.SignatureMetaData;
 import module.signature.util.Signable;
+import module.signature.util.exporter.ExporterException;
 import module.signature.util.exporter.SignatureExporter;
 import myorg.applicationTier.Authenticate.UserView;
-import myorg.domain.MyOrg;
 
 import org.apache.commons.lang.RandomStringUtils;
 import org.joda.time.DateTime;
@@ -19,10 +19,9 @@ abstract public class SignatureIntention extends SignatureIntention_Base {
     public SignatureIntention() {
 	super();
 
-	setMyOrg(MyOrg.getInstance());
+	setSignatureSystem(SignatureSystem.getInstance());
 	setUser(UserView.getCurrentUser());
 
-	setSealed(false);
 	setTokenInUsed(false);
 	setTokenOutUsed(false);
 	setExpire(new DateTime().plusMinutes(EXPIRE_MINUTES));
@@ -30,29 +29,30 @@ abstract public class SignatureIntention extends SignatureIntention_Base {
 	generateTokens();
     }
 
-    abstract protected void finalizeSignature(UploadedFile file0, UploadedFile file1);
-
     abstract public <T extends Signable> T getSignObject();
 
     abstract public SignatureMetaData getMetaData();
+
+    abstract protected void finalizeSignature();
 
     abstract protected void setRelation(SignatureIntention signature);
 
     @Service
     final public void sealSignature(UploadedFile file0, UploadedFile file1) {
-	finalizeSignature(file0, file1);
+	SignatureRepository.getRepository().addSignature(this, file0, file1);
 
+	finalizeSignature();
+	setRelation(this);
 	setSealedDateTime(new DateTime());
-	setSealed(true);
     }
 
-    public String getSignatureDocument() {
-	return "uhhhh .pdf";
-    }
+    public String getSignatureContent() {
+	if (getSignatureFile() != null) {
+	    return new String(getSignatureFile().getContent());
+	}
 
-    /**
-     * not very interesting methods
-     */
+	return "";
+    }
 
     private void generateTokens() {
 	setTokenIn(RandomStringUtils.randomAlphanumeric(32));
@@ -60,7 +60,11 @@ abstract public class SignatureIntention extends SignatureIntention_Base {
     }
 
     public void getContentToSign(SignatureExporter signatureExporter) {
-	getMetaData().accept(signatureExporter);
+	try {
+	    signatureExporter.export(getMetaData());
+	} catch (ExporterException e) {
+	    e.printStackTrace();
+	}
     }
 
     @Service
@@ -82,14 +86,18 @@ abstract public class SignatureIntention extends SignatureIntention_Base {
     }
 
     public boolean isSealed() {
-	return getSealed();
+	return getSealedDateTime() != null;
     }
 
     @Service
     public void delete() {
 	removeMyOrg();
-	removeUser();
+	removeSignatureFile();
 	removeSignatureQueue();
+	removeSignatureSystem();
+	removeUser();
+	removeWorkflowLog();
 	removeWorkflowProcess();
+	deleteDomainObject();
     }
 }
