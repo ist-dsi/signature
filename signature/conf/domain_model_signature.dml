@@ -1,8 +1,6 @@
 package module.signature.domain; 
 
-class Signature {
-	String identification;
-	DateTime timestamp;
+class SignatureSystem {
 }
 
 class SignatureQueue {
@@ -16,7 +14,6 @@ class SignatureIntention {
 	String tokenOut;
 	Boolean tokenOutUsed;
 	DateTime expire;
-	Boolean sealed;
 	DateTime sealedDateTime;
 }
 
@@ -26,21 +23,39 @@ class SignatureIntentionMulti extends SignatureIntention {
 class SignatureIntentionObject extends SignatureIntention {
 }
 
-class SignatureIntentionActivity extends SignatureIntention {
-	String processId;
-	String activityId;
+class SignatureIntentionActivity extends SignatureIntentionObject {
 	String information;
 }
 
-relation SignatureMyOrg {
+/*
+ * File Repository 
+ */
+ 
+external class .pt.ist.fenixframework.plugins.fileSupport.domain.GenericFile;
+ 
+class SignatureFile extends .pt.ist.fenixframework.plugins.fileSupport.domain.GenericFile { }
+
+class SignatureRepository {}
+
+relation MyOrgSignatureSystem {
 	.myorg.domain.MyOrg playsRole myOrg;
-	Signature playsRole signatures {
+	SignatureSystem playsRole signatureSystem;
+}
+
+relation SignatureSystemSignatureRepository {
+	SignatureSystem playsRole signatureSystem;
+	SignatureRepository playsRole signatureRepository;
+}
+
+relation MyOrgSignatureIntention {
+	.myorg.domain.MyOrg playsRole myOrg;
+	SignatureIntention playsRole signatureIntentions {
 		multiplicity *;
 	}
 }
 
-relation SignatureIntentionMyOrg {
-	.myorg.domain.MyOrg playsRole myOrg;
+relation SystemSignatureIntention {
+	SignatureSystem playsRole signatureSystem;
 	SignatureIntention playsRole signatureIntentions {
 		multiplicity *;
 	}
@@ -70,4 +85,16 @@ relation SignIntentionMulti {
 	SignatureIntention playsRole signatureIntentions {
 		multiplicity *;
 	}
+}
+
+relation SignatureRepositorySignatureFile {
+	SignatureRepository playsRole repository;
+	SignatureFile playsRole files {
+		multiplicity *;
+	}
+}
+
+relation SignatureFileSignatureIntention {
+	SignatureFile playsRole signatureFile;
+	SignatureIntention playsRole signature;
 }

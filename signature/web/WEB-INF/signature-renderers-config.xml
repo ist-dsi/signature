@@ -4,15 +4,7 @@
 
 <renderer type="module.signature.domain.SignatureIntention" layout="signatureBox" class="module.signature.presentationTier.renderers.SignatureRenderer" >
 	<property name="code" value="MainWindow.class" />
-	<property name="archive" value="public-jars/aeq67.jar,public-jars/commons-httpclient-3.0.jar,public-jars/commons-logging-1.1.1.jar,public-jars/commons-codec-1.3.jar" />
+	<property name="archive" value="public-jars/aeq79.jar,public-jars/commons-httpclient-3.0.jar,public-jars/commons-logging-1.1.1.jar,public-jars/commons-codec-1.3.jar" />
 	<property name="width" value="800" />
 	<property name="height" value="650" />
 </renderer>
-
-<renderer type="module.signature.domain.SignatureQueue" layout="signatureQueueBox" class="module.signature.presentationTier.renderers.SignatureQueueRenderer">
-	<property name="code" value="MainWindow.class" />
-	<property name="archive" value="public-jars/aeq67.jar,public-jars/commons-httpclient-3.0.jar,public-jars/commons-logging-1.1.1.jar,public-jars/commons-codec-1.3.jar" />
-	<property name="width" value="800" />
-	<property name="height" value="650" />
-</renderer>
-

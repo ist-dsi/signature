@@ -7,11 +7,13 @@
 
 <h1>Queue List</h1>
 
-<bean:write name="signIntention" property="signatureIntentionsCount" /> items
+<logic:notPresent name="signIntention">
+Não existem assinaturas na Queue ;)
+</logic:notPresent>
 
-<logic:iterate id="queueItem" name="signIntention" property="signatureIntentions">
-	<li><bean:write name="queueItem" property="identification" /> (<bean:write name="queueItem" property="signObject.class" />)</li>
-</logic:iterate>
-
-<fr:view name="signIntention" layout="signatureBox" />
+<logic:present name="signIntention">
+	<bean:write name="signIntention" property="signatureIntentionsCount" /> items
+	
+	<fr:view name="signIntention" layout="signatureBox" />
+</logic:present>
 
