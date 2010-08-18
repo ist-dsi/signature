@@ -50,17 +50,28 @@ import org.apache.struts.action.ActionMapping;
 import org.apache.struts.action.ActionRedirect;
 
 import pt.ist.fenixWebFramework.renderers.plugin.RenderersRequestProcessorImpl;
+import pt.ist.fenixWebFramework.services.Service;
 import pt.ist.fenixWebFramework.servlets.commons.UploadedFile;
 import pt.ist.fenixWebFramework.struts.annotations.Mapping;
 
 @Mapping(path = "/signatureAction")
 public class SignatureAction extends ContextBaseAction {
 
-    boolean TOKENS_ACTIVE = false;
+    private final boolean TOKENS_ACTIVE = false;
 
     protected SignatureQueue getQueue() {
 	User user = UserView.getCurrentUser();
+
+	if (user.getSignatureQueue() == null) {
+	    createQueue(user);
+	}
+
 	return user.getSignatureQueue();
+    }
+
+    @Service
+    private void createQueue(User user) {
+	user.setSignatureQueue(new SignatureQueue());
     }
 
     public ActionForward createSignature(final ActionMapping mapping, final ActionForm form, final HttpServletRequest request,
