@@ -9,6 +9,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import module.signature.domain.SignatureIntention;
 import module.signature.domain.SignatureIntentionMulti;
+import module.signature.exception.SignatureMetaDataInvalidException;
 
 @XmlRootElement(name = "multi")
 public class SignatureMetaDataMulti extends SignatureMetaData<SignatureIntentionMulti> {
@@ -21,23 +22,42 @@ public class SignatureMetaDataMulti extends SignatureMetaData<SignatureIntention
 	super();
     }
 
-    public SignatureMetaDataMulti(SignatureIntentionMulti signature) {
-	super(signature);
+    public SignatureMetaDataMulti(SignatureIntentionMulti multi) {
+	super(multi);
 
-	setIdentification(signature.getIdentification());
-	setList(new ArrayList<SignatureMetaData>());
+	list = new ArrayList<SignatureMetaData>();
 
-	for (SignatureIntention si : signature.getSignatureIntentions()) {
-	    getList().add(si.getMetaData());
+	for (SignatureIntention childSignature : multi.getSignatureIntentions()) {
+	    addChild(childSignature.getMetaData());
 	}
+    }
+
+    @Override
+    public void checkData(SignatureIntentionMulti multi) throws SignatureMetaDataInvalidException {
+	assertEquals(getList().size(), multi.getSignatureIntentionsCount());
+
+	int verified = 0;
+	for (SignatureIntention signature : multi.getSignatureIntentions()) {
+	    for (SignatureMetaData childMetaData : getList()) {
+		if (signature.getExternalId().equals(childMetaData.getIdentification())) {
+		    childMetaData.checkData(signature.getSignObject());
+		    verified++;
+		    break;
+		}
+	    }
+	}
+
+	if (verified < multi.getSignatureIntentionsCount()) {
+	    throw new SignatureMetaDataInvalidException("Not all metadata could me found");
+	}
+    }
+
+    public void addChild(SignatureMetaData metaData) {
+	list.add(metaData);
     }
 
     public List<SignatureMetaData> getList() {
 	return list;
-    }
-
-    public void setList(List<SignatureMetaData> list) {
-	this.list = list;
     }
 
 }

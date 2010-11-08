@@ -36,18 +36,14 @@ import module.signature.domain.SignatureIntention;
 import module.signature.domain.SignatureIntentionMulti;
 import module.signature.domain.SignatureQueue;
 import module.signature.domain.SignatureSystem;
-import module.signature.metadata.SignatureMetaDataRoot;
+import module.signature.exception.SignatureExpiredException;
+import module.signature.presentationTier.SignatureLayoutContext;
 import module.signature.util.exporter.ExporterException;
-import module.signature.util.exporter.SignatureExporter;
-import module.signature.util.exporter.SignatureExporterXML;
-import myorg.applicationTier.Authenticate.UserView;
-import myorg.domain.User;
 import myorg.presentationTier.actions.ContextBaseAction;
 
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
-import org.apache.struts.action.ActionRedirect;
 
 import pt.ist.fenixWebFramework.renderers.plugin.RenderersRequestProcessorImpl;
 import pt.ist.fenixWebFramework.services.Service;
@@ -57,31 +53,19 @@ import pt.ist.fenixWebFramework.struts.annotations.Mapping;
 @Mapping(path = "/signatureAction")
 public class SignatureAction extends ContextBaseAction {
 
-    private final boolean TOKENS_ACTIVE = false;
-
-    protected SignatureQueue getQueue() {
-	User user = UserView.getCurrentUser();
-
-	if (user.getSignatureQueue() == null) {
-	    createQueue(user);
-	}
-
-	return user.getSignatureQueue();
-    }
-
-    @Service
-    private void createQueue(User user) {
-	user.setSignatureQueue(new SignatureQueue());
-    }
+    private final boolean TOKENS_ACTIVE = true;
 
     public ActionForward createSignature(final ActionMapping mapping, final ActionForm form, final HttpServletRequest request,
 	    final HttpServletResponse response) {
 
 	final SignatureIntention signIntention = getSignatureIntention(request);
 
+	setContext(request, new SignatureLayoutContext());
+	activateSignature(signIntention);
+
 	if (SignatureSystem.hasQueue()) {
 
-	    getQueue().push(signIntention);
+	    SignatureSystem.getInstance().getQueue().push(signIntention);
 
 	    return forward(request, "/signature/confirmSignatureToQueue.jsp");
 	}
@@ -91,12 +75,18 @@ public class SignatureAction extends ContextBaseAction {
 	return forward(request, "/signature/createSignature.jsp");
     }
 
+    @Service
+    private void activateSignature(SignatureIntention signIntention) {
+	signIntention.setActivated(true);
+    }
+
     public ActionForward showQueue(final ActionMapping mapping, final ActionForm form, final HttpServletRequest request,
 	    final HttpServletResponse response) {
 
 	if (SignatureSystem.hasQueue()) {
-	    if (getQueue().getSignatureIntentionsCount() > 0) {
-		SignatureIntentionMulti signIntention = SignatureIntentionMulti.factory(getQueue());
+	    SignatureQueue queue = SignatureSystem.getInstance().getQueue();
+	    if (queue.getSignatureIntentionsCount() > 0) {
+		SignatureIntentionMulti signIntention = SignatureIntentionMulti.factory(queue);
 
 		request.setAttribute("signIntention", signIntention);
 	    }
@@ -105,23 +95,35 @@ public class SignatureAction extends ContextBaseAction {
 	return forward(request, "/signature/showQueue.jsp");
     }
 
+    public ActionForward clean(final ActionMapping mapping, final ActionForm form, final HttpServletRequest request,
+	    final HttpServletResponse response) {
+
+	for (SignatureIntention signature : SignatureSystem.getInstance().getSignatureIntentions()) {
+	    signature.delete();
+	}
+
+	return forward(request, "/signature/showQueue.jsp");
+    }
+
+    // TODO remove this :)
     public ActionForward clearQueue(final ActionMapping mapping, final ActionForm form, final HttpServletRequest request,
 	    final HttpServletResponse response) {
 
-	if (SignatureSystem.hasQueue()) {
+	SignatureSystem.getInstance().clearQueue();
 
-	    getQueue().clear();
-	}
+	request.setAttribute("signIntention", null);
 
-	return new ActionRedirect(request.getRequestURI());
+	return forward(request, "/signature/showQueue.jsp");
     }
 
-    public ActionForward viewSignature(final ActionMapping mapping, final ActionForm form, final HttpServletRequest request,
+    public ActionForward checkSignature(final ActionMapping mapping, final ActionForm form, final HttpServletRequest request,
 	    final HttpServletResponse response) {
 
-	final SignatureIntention signatureIntention = getSignatureIntention(request);
+	final SignatureIntention signature = getSignatureIntention(request);
 
-	request.setAttribute("signIntention", signatureIntention);
+	SignatureSystem.validateSignature(signature);
+
+	request.setAttribute("signIntention", signature);
 
 	return forward(request, "/signature/viewSignature.jsp");
     }
@@ -141,14 +143,12 @@ public class SignatureAction extends ContextBaseAction {
     public ActionForward getLogsToSign(final ActionMapping mapping, final ActionForm form, final HttpServletRequest request,
 	    final HttpServletResponse response) {
 
-	final SignatureIntention signatureIntention = getSignatureIntention(request);
+	final SignatureIntention signature = getSignatureIntention(request);
 
-	verifyTokenIn(signatureIntention, request);
+	verifyTokenIn(signature, request);
 
 	try {
-	    SignatureExporter signExporter = new SignatureExporterXML();
-	    SignatureMetaDataRoot signRoot = new SignatureMetaDataRoot(signatureIntention);
-	    String contentToSign = signExporter.export(signRoot);
+	    String contentToSign = SignatureSystem.exportSignature(signature);
 
 	    OutputStream outputStream = response.getOutputStream();
 	    OutputStreamWriter streamWriter = new OutputStreamWriter(outputStream, "UTF-8");
@@ -190,12 +190,12 @@ public class SignatureAction extends ContextBaseAction {
 	    UploadedFile uploadedFile0 = RenderersRequestProcessorImpl.getUploadedFile("file0");
 	    UploadedFile uploadedFile1 = RenderersRequestProcessorImpl.getUploadedFile("file1");
 
-	    signIntention.sealSignature(uploadedFile0, uploadedFile1);
-
 	    System.out.println("file0: ");
 	    System.out.println("---" + new String(uploadedFile0.getFileData()) + "---");
 	    System.out.println("file1: ");
 	    System.out.println("---" + new String(uploadedFile1.getFileData()) + "---");
+
+	    signIntention.seal(uploadedFile0, uploadedFile1);
 
 	    streamWriter.write("--- Finish Signature");
 
@@ -208,12 +208,11 @@ public class SignatureAction extends ContextBaseAction {
 	    e.printStackTrace();
 	}
 
-	if (SignatureSystem.hasQueue()) {
-
-	    getQueue().clear();
-	}
-
 	return null;
+    }
+
+    protected SignatureQueue getSignatureQueue(HttpServletRequest request) {
+	return getDomainObject(request, "OID");
     }
 
     protected SignatureIntention getSignatureIntention(HttpServletRequest request) {
@@ -226,7 +225,12 @@ public class SignatureAction extends ContextBaseAction {
 	}
 
 	String tokenIn = request.getParameter("token");
-	signature.verifyTokenIn(tokenIn);
+	try {
+	    signature.verifyTokenIn(tokenIn);
+	} catch (SignatureExpiredException e) {
+	    // TODO Auto-generated catch block
+	    e.printStackTrace();
+	}
     }
 
     protected void verifyTokenOut(SignatureIntention signature, HttpServletRequest request) {
@@ -235,6 +239,12 @@ public class SignatureAction extends ContextBaseAction {
 	}
 
 	String tokenOut = request.getParameter("token");
-	signature.verifyTokenOut(tokenOut);
+	try {
+	    signature.verifyTokenOut(tokenOut);
+	} catch (SignatureExpiredException e) {
+	    // TODO Auto-generated catch block
+	    e.printStackTrace();
+	}
     }
+
 }

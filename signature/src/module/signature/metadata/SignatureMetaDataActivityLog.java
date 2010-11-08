@@ -2,11 +2,12 @@ package module.signature.metadata;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import module.signature.exception.SignatureMetaDataInvalidException;
 import module.workflow.domain.ActivityLog;
-import module.workflow.domain.WorkflowProcess;
+import module.workflow.domain.WorkflowLog;
 
 @XmlRootElement
-public class SignatureMetaDataActivityLog extends SignatureMetaDataWorkflowLog {
+public class SignatureMetaDataActivityLog extends SignatureMetaDataWorkflowLog<ActivityLog> {
 
     private String operationName;
 
@@ -14,8 +15,15 @@ public class SignatureMetaDataActivityLog extends SignatureMetaDataWorkflowLog {
 	super();
     }
 
-    public SignatureMetaDataActivityLog(ActivityLog log, WorkflowProcess process) {
-	super(log, process);
+    public SignatureMetaDataActivityLog(ActivityLog log) {
+	super(log);
+    }
+
+    @Override
+    public void checkData(WorkflowLog log) throws SignatureMetaDataInvalidException {
+	super.checkData(log);
+
+	// assertEquals(getOperationName(), log.get)
     }
 
     public String getOperationName() {

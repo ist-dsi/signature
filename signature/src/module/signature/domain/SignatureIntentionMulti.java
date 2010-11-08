@@ -1,8 +1,6 @@
 package module.signature.domain;
 
-import module.signature.metadata.SignatureMetaData;
 import module.signature.metadata.SignatureMetaDataMulti;
-import module.signature.util.Signable;
 import module.signature.util.exporter.SignatureExporter;
 import pt.ist.fenixWebFramework.services.Service;
 
@@ -20,18 +18,22 @@ public class SignatureIntentionMulti extends SignatureIntentionMulti_Base {
     }
 
     protected void init(SignatureQueue queue) {
+	setActivated(true);
+
 	for (SignatureIntention signIntention : queue.getSignatureIntentions()) {
-	    addSignatureIntentions(signIntention);
+	    if (signIntention.getActivated()) {
+		addSignatureIntentions(signIntention);
+	    }
 	}
     }
 
     @Override
-    public <T extends Signable> T getSignObject() {
-	return null;
+    public SignatureIntentionMulti getSignObject() {
+	return this;
     }
 
     @Override
-    public SignatureMetaData getMetaData() {
+    public SignatureMetaDataMulti getMetaData() {
 	return new SignatureMetaDataMulti(this);
     }
 
@@ -56,4 +58,11 @@ public class SignatureIntentionMulti extends SignatureIntentionMulti_Base {
 	}
     }
 
+    @Override
+    public void delete() {
+
+	System.out.println("SigMulti has " + getSignatureIntentions().size() + " childs.");
+
+	super.delete();
+    }
 }

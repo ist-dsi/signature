@@ -3,12 +3,12 @@ package module.signature.metadata;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+import module.signature.exception.SignatureMetaDataInvalidException;
 import module.workflow.domain.WorkflowLog;
-import module.workflow.domain.WorkflowProcess;
 
 @XmlRootElement(name = "log")
 @XmlType(propOrder = { "processId", "description" })
-public class SignatureMetaDataWorkflowLog extends SignatureMetaData<WorkflowLog> {
+public class SignatureMetaDataWorkflowLog<T extends WorkflowLog> extends SignatureMetaData<WorkflowLog> {
 
     private String processId;
     private String description;
@@ -17,12 +17,17 @@ public class SignatureMetaDataWorkflowLog extends SignatureMetaData<WorkflowLog>
 	super();
     }
 
-    public SignatureMetaDataWorkflowLog(WorkflowLog log, WorkflowProcess process) {
+    public SignatureMetaDataWorkflowLog(WorkflowLog log) {
 	super(log);
 
-	setIdentification(log.getIdentification());
-	setProcessId(process.getExternalId());
+	setProcessId(log.getProcess().getExternalId());
 	setDescription(log.getDescription());
+    }
+
+    @Override
+    public void checkData(WorkflowLog log) throws SignatureMetaDataInvalidException {
+	assertEquals(getProcessId(), log.getProcess().getExternalId());
+	assertEquals(getDescription(), log.getDescription());
     }
 
     public String getDescription() {
@@ -40,4 +45,5 @@ public class SignatureMetaDataWorkflowLog extends SignatureMetaData<WorkflowLog>
     public void setProcessId(String processId) {
 	this.processId = processId;
     }
+
 }

@@ -38,6 +38,7 @@ public class SignatureLinkRenderer extends OutputRenderer {
 		preLink.setUrl("/signatureAction.do?method=createSignature&objectId=" + signIntention.getExternalId());
 
 		String signatureLink = GenericChecksumRewriter.injectChecksumInUrl("", preLink.calculateUrl());
+		signatureLink = signatureLink.replace("&amp;", "&"); // fix
 
 		HtmlBlockContainer container = new HtmlBlockContainer();
 
@@ -48,17 +49,24 @@ public class SignatureLinkRenderer extends OutputRenderer {
 
 		HtmlBlockContainer signWindow = new HtmlBlockContainer();
 		signWindow.setId("signWindow");
-		signWindow.addChild(new HtmlText("<iframe style=\"width: 820px; height: 710px\" src=\"" + signatureLink
-			+ "\"></iframe>", false));
+		// signWindow.addChild(new
+		// HtmlText("<iframe style=\"width: 820px; height: 710px\" src=\""
+		// + signatureLink
+		// + "\"></iframe>", false));
 
 		container.addChild(signLink);
 		container.addChild(signWindow);
-		container
-			.addChild(new HtmlText(
-				"<script type=\"text/javascript\">"
-					+ "$(function() { $(\"#signWindow\").dialog({ autoOpen: false, title: 'Assinatura Digital', width: 820, height: 710, resizable: false, draggable: false }); });"
-					+ "$(\"#signLink\").click(function() { $(\"#signWindow\").dialog('open');});"
-					+ "</script>", false));
+
+		container.addChild(new HtmlText("<script type=\"text/javascript\">" + "$(document).ready(function() {"
+			+ "$(\"#signLink\").click(function() { $.get('" + signatureLink
+			+ "', function(data) { $('#signWindow').html(data); });  });" + "});" + "</script>", false));
+		/*
+		 * container.addChild(new
+		 * HtmlText("<script type=\"text/javascript\">" +
+		 * "$('#signLink').click(function() { $('#signWindow').html('" +
+		 * "<iframe style=\"width: 820px; height: 710px\" src=\"" +
+		 * signatureLink + "\"></iframe>" + "')});</script>", false));
+		 */
 
 		return container;
 	    }

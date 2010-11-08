@@ -1,7 +1,6 @@
 package module.signature.domain;
 
-import module.signature.metadata.SignatureMetaData;
-import module.signature.metadata.SignatureMetaDataWorkflowLog;
+import module.signature.metadata.SignatureMetaDataActivityLog;
 import module.workflow.activities.ActivityInformation;
 import module.workflow.activities.WorkflowActivity;
 import module.workflow.domain.ActivityLog;
@@ -29,7 +28,7 @@ public class SignatureIntentionActivity<P extends WorkflowProcess, AI extends Ac
 
     @Override
     public ActivityLog getSignObject() {
-	return fromExternalId(getIdentification());
+	return fromExternalId(getSignObjectId());
     }
 
     protected P getProcess() {
@@ -46,8 +45,8 @@ public class SignatureIntentionActivity<P extends WorkflowProcess, AI extends Ac
     }
 
     @Override
-    public SignatureMetaData getMetaData() {
-	return new SignatureMetaDataWorkflowLog(getSignObject(), getProcess());
+    public SignatureMetaDataActivityLog getMetaData() {
+	return new SignatureMetaDataActivityLog(getSignObject());
     }
 
     @Override

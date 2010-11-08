@@ -2,8 +2,9 @@ package module.signature.util.exporter;
 
 import module.signature.metadata.SignatureMetaData;
 
-public interface SignatureExporter {
+public interface SignatureExporter<T extends SignatureMetaData> {
 
-    public String export(SignatureMetaData sign) throws ExporterException;
+    public String export(T sign) throws ExporterException;
 
+    public T rebuild(String content) throws ExporterException;
 }

@@ -10,11 +10,11 @@ public abstract class SignatureIntentionObject extends SignatureIntentionObject_
     }
 
     protected void init(SignableObject signable) {
-	setIdentification(signable.getIdentification());
+	setSignObjectId(signable.getIdentification());
     }
 
     @Override
     public <T extends Signable> T getSignObject() {
-	return (T) fromExternalId(getIdentification());
+	return (T) fromExternalId(getSignObjectId());
     }
 }

@@ -46,21 +46,27 @@ public class SignatureRenderer extends OutputRenderer {
 	int serverPort = request.getServerPort(); // 80
 	String contextPath = request.getContextPath(); // /mywebapp
 
-	return scheme + "://" + serverName + ":" + serverPort + contextPath + "/signatureAction.do?";
+	return scheme + "://" + serverName + ":" + serverPort + contextPath;
     }
 
     protected String generateContentUrl(Object object) {
 	SignatureIntention signIntention = (SignatureIntention) object;
 
-	return getBaseURL() + "method=getLogsToSign&objectId=" + signIntention.getExternalId() + "&token="
+	return getBaseURL() + "/signatureAction.do?method=getLogsToSign&objectId=" + signIntention.getExternalId() + "&token="
 		+ signIntention.getTokenIn();
     }
 
     protected String generateServerUrl(Object object) {
 	SignatureIntention signIntention = (SignatureIntention) object;
 
-	return getBaseURL() + "method=receiveSignature&objectId=" + signIntention.getExternalId() + "&token="
+	return getBaseURL() + "/signatureAction.do?method=receiveSignature&objectId=" + signIntention.getExternalId() + "&token="
 		+ signIntention.getTokenOut();
+    }
+
+    protected String generateRedirectUrl(Object object) {
+	SignatureIntention signIntention = (SignatureIntention) object;
+
+	return getBaseURL() + "/signature.do?method=history";
     }
 
     @Override
@@ -78,6 +84,7 @@ public class SignatureRenderer extends OutputRenderer {
 
 		applet.setProperty("signContentURL", generateContentUrl(object));
 		applet.setProperty("serverURL", generateServerUrl(object));
+		applet.setProperty("redirectURL", generateRedirectUrl(object));
 
 		HtmlBlockContainer signWindow = new HtmlBlockContainer();
 		signWindow.setId("signWindow");

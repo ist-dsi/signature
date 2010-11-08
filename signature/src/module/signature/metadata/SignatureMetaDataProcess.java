@@ -8,7 +8,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
-import module.workflow.domain.ActivityLog;
+import module.signature.exception.SignatureMetaDataInvalidException;
 import module.workflow.domain.WorkflowLog;
 import module.workflow.domain.WorkflowProcess;
 
@@ -28,30 +28,30 @@ public class SignatureMetaDataProcess extends SignatureMetaData<WorkflowProcess>
     public SignatureMetaDataProcess(WorkflowProcess process) {
 	super(process);
 
-	setIdentification(process.getIdentification());
+	logs = new ArrayList<SignatureMetaDataWorkflowLog>();
+
 	setProcessNumber(process.getProcessNumber());
 
-	setLogs(new ArrayList<SignatureMetaDataWorkflowLog>());
-
 	for (WorkflowLog log : process.getExecutionLogs()) {
-	    getLogs().add(addLog(log, process));
+	    SignatureMetaDataWorkflowLog metadataLog = new SignatureMetaDataWorkflowLog(log);
+	    metadataLog.setProcessId(process.getIdentification());
+	    metadataLog.setDescription(log.getDescription());
+
+	    addLog(metadataLog);
 	}
     }
 
-    private SignatureMetaDataWorkflowLog addLog(WorkflowLog log, WorkflowProcess process) {
-	return new SignatureMetaDataWorkflowLog(log, process);
-    }
-
-    private SignatureMetaDataWorkflowLog addLog(ActivityLog log, WorkflowProcess process) {
-	return new SignatureMetaDataActivityLog(log, process);
+    @Override
+    public void checkData(WorkflowProcess process) throws SignatureMetaDataInvalidException {
+	assertEquals(getProcessNumber(), process.getProcessNumber());
     }
 
     public List<SignatureMetaDataWorkflowLog> getLogs() {
 	return logs;
     }
 
-    public void setLogs(List<SignatureMetaDataWorkflowLog> logs) {
-	this.logs = logs;
+    public void addLog(SignatureMetaDataWorkflowLog metaDataLog) {
+	logs.add(metaDataLog);
     }
 
     public String getProcessNumber() {
