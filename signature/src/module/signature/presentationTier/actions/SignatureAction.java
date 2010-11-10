@@ -95,27 +95,6 @@ public class SignatureAction extends ContextBaseAction {
 	return forward(request, "/signature/showQueue.jsp");
     }
 
-    public ActionForward clean(final ActionMapping mapping, final ActionForm form, final HttpServletRequest request,
-	    final HttpServletResponse response) {
-
-	for (SignatureIntention signature : SignatureSystem.getInstance().getSignatureIntentions()) {
-	    signature.delete();
-	}
-
-	return forward(request, "/signature/showQueue.jsp");
-    }
-
-    // TODO remove this :)
-    public ActionForward clearQueue(final ActionMapping mapping, final ActionForm form, final HttpServletRequest request,
-	    final HttpServletResponse response) {
-
-	SignatureSystem.getInstance().clearQueue();
-
-	request.setAttribute("signIntention", null);
-
-	return forward(request, "/signature/showQueue.jsp");
-    }
-
     public ActionForward checkSignature(final ActionMapping mapping, final ActionForm form, final HttpServletRequest request,
 	    final HttpServletResponse response) {
 
@@ -124,18 +103,6 @@ public class SignatureAction extends ContextBaseAction {
 	SignatureSystem.validateSignature(signature);
 
 	request.setAttribute("signIntention", signature);
-
-	return forward(request, "/signature/viewSignature.jsp");
-    }
-
-    public ActionForward deleteSignature(final ActionMapping mapping, final ActionForm form, final HttpServletRequest request,
-	    final HttpServletResponse response) {
-
-	final SignatureIntention signatureIntention = getSignatureIntention(request);
-
-	request.setAttribute("signIntention", signatureIntention);
-
-	signatureIntention.delete();
 
 	return forward(request, "/signature/viewSignature.jsp");
     }
