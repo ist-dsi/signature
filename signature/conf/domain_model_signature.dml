@@ -1,14 +1,17 @@
 package module.signature.domain; 
 
 class SignatureSystem {
+	Integer queueMinutesLimit;
+	Integer intentionMinutesLimit;
 }
 
 class SignatureQueue {
-	
+	DateTime expire;	
 }
 
 class SignatureIntention {
-	String identification;
+	String signObjectId;
+	Boolean activated;
 	String tokenIn;
 	Boolean tokenInUsed; 
 	String tokenOut;
@@ -25,6 +28,9 @@ class SignatureIntentionObject extends SignatureIntention {
 
 class SignatureIntentionActivity extends SignatureIntentionObject {
 	String information;
+}
+
+class task.ClearExpiredSignatures extends .myorg.domain.scheduler.Task {
 }
 
 /*
@@ -45,13 +51,6 @@ relation MyOrgSignatureSystem {
 relation SignatureSystemSignatureRepository {
 	SignatureSystem playsRole signatureSystem;
 	SignatureRepository playsRole signatureRepository;
-}
-
-relation MyOrgSignatureIntention {
-	.myorg.domain.MyOrg playsRole myOrg;
-	SignatureIntention playsRole signatureIntentions {
-		multiplicity *;
-	}
 }
 
 relation SystemSignatureIntention {
