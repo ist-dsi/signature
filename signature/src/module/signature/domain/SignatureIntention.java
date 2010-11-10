@@ -162,7 +162,7 @@ abstract public class SignatureIntention extends SignatureIntention_Base impleme
     }
 
     @Service
-    public void cancel() {
+    final public void cancel() {
 	if (isSealed()) {
 	    return;
 	}
@@ -173,7 +173,7 @@ abstract public class SignatureIntention extends SignatureIntention_Base impleme
     }
 
     @Service
-    public void delete() {
+    protected void delete() {
 	if (isSealed()) {
 	    return;
 	}
@@ -181,6 +181,7 @@ abstract public class SignatureIntention extends SignatureIntention_Base impleme
 	removeSignatureSystem();
 	removeSignatureQueue();
 	removeSignatureFile();
+	removeMulti();
 	removeUser();
 	removeWorkflowLog();
 	removeWorkflowProcess();

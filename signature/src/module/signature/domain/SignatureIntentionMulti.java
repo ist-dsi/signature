@@ -57,12 +57,4 @@ public class SignatureIntentionMulti extends SignatureIntentionMulti_Base {
 	    signIntention.finalizeSignature();
 	}
     }
-
-    @Override
-    public void delete() {
-
-	System.out.println("SigMulti has " + getSignatureIntentions().size() + " childs.");
-
-	super.delete();
-    }
 }

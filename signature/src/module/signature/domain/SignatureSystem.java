@@ -7,17 +7,18 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import module.dashBoard.WidgetRegister;
 import module.signature.exception.SignatureException;
 import module.signature.exception.SignatureNotSealedException;
 import module.signature.metadata.SignatureMetaDataRoot;
 import module.signature.util.exporter.ExporterException;
 import module.signature.util.exporter.SignatureExporter;
 import module.signature.util.exporter.SignatureExporterXML;
+import module.signature.widgets.SignatureWidget;
 import myorg.applicationTier.Authenticate.UserView;
 import myorg.domain.ModuleInitializer;
 import myorg.domain.MyOrg;
 import myorg.domain.User;
-import pt.ist.fenixWebFramework.services.Service;
 import aeq.XAdESValidator;
 
 public class SignatureSystem extends SignatureSystem_Base implements ModuleInitializer {
@@ -34,11 +35,6 @@ public class SignatureSystem extends SignatureSystem_Base implements ModuleIniti
 
     private SignatureSystem() {
 	super();
-    }
-
-    @Override
-    @Service
-    public void init(MyOrg root) {
     }
 
     public static boolean hasQueue() {
@@ -130,4 +126,10 @@ public class SignatureSystem extends SignatureSystem_Base implements ModuleIniti
 
 	return result;
     }
+
+    @Override
+    public void init(MyOrg root) {
+	WidgetRegister.registerWidget(SignatureWidget.class);
+    }
+
 }

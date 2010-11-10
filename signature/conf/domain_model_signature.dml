@@ -80,7 +80,7 @@ relation QueueSignIntention {
 }
 
 relation SignIntentionMulti {
-	SignatureIntentionMulti playsRole;
+	SignatureIntentionMulti playsRole multi;
 	SignatureIntention playsRole signatureIntentions {
 		multiplicity *;
 	}
