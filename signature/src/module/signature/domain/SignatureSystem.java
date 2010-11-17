@@ -15,10 +15,8 @@ import module.signature.util.exporter.ExporterException;
 import module.signature.util.exporter.SignatureExporter;
 import module.signature.util.exporter.SignatureExporterXML;
 import module.signature.widgets.SignatureWidget;
-import myorg.applicationTier.Authenticate.UserView;
 import myorg.domain.ModuleInitializer;
 import myorg.domain.MyOrg;
-import myorg.domain.User;
 import aeq.XAdESValidator;
 
 public class SignatureSystem extends SignatureSystem_Base implements ModuleInitializer {
@@ -35,40 +33,6 @@ public class SignatureSystem extends SignatureSystem_Base implements ModuleIniti
 
     private SignatureSystem() {
 	super();
-    }
-
-    public static boolean hasQueue() {
-	return UserView.getCurrentUser().hasSignatureQueue();
-    }
-
-    public SignatureQueue getQueue() {
-	User user = UserView.getCurrentUser();
-
-	if (hasQueue()) {
-	    return user.getSignatureQueue();
-	}
-
-	return null;
-    }
-
-    public void clearQueue() {
-	User user = UserView.getCurrentUser();
-
-	if (hasQueue()) {
-	    user.getSignatureQueue().clear();
-	}
-    }
-
-    public List<SignatureIntention> getSignatures() {
-	List<SignatureIntention> sealed = new ArrayList<SignatureIntention>();
-
-	for (SignatureIntention signature : UserView.getCurrentUser().getSignatureIntentions()) {
-	    if (signature.isSealed()) {
-		sealed.add(signature);
-	    }
-	}
-
-	return sealed;
     }
 
     public static String exportSignature(SignatureIntention signature) throws ExporterException {

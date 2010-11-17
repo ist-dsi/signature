@@ -17,7 +17,9 @@ class SignatureIntention {
 	String tokenOut;
 	Boolean tokenOutUsed;
 	DateTime expire;
+	DateTime createdDateTime;
 	DateTime sealedDateTime;
+	String content; 
 }
 
 class SignatureIntentionMulti extends SignatureIntention {

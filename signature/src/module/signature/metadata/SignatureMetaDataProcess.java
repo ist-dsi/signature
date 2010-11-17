@@ -6,18 +6,20 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
 
 import module.signature.exception.SignatureMetaDataInvalidException;
 import module.workflow.domain.WorkflowLog;
 import module.workflow.domain.WorkflowProcess;
 
+import org.joda.time.DateTime;
+
 @XmlRootElement(name = "process")
-@XmlType(propOrder = { "processNumber", "logs" })
 @XmlAccessorType(XmlAccessType.FIELD)
 public class SignatureMetaDataProcess extends SignatureMetaData<WorkflowProcess> {
 
     private String processNumber;
+    private DateTime creationDate;
+    private String description;
 
     private List<SignatureMetaDataWorkflowLog> logs;
 
@@ -31,6 +33,8 @@ public class SignatureMetaDataProcess extends SignatureMetaData<WorkflowProcess>
 	logs = new ArrayList<SignatureMetaDataWorkflowLog>();
 
 	setProcessNumber(process.getProcessNumber());
+	setCreationDate(process.getCreationDate());
+	setDescription(process.getDescription());
 
 	for (WorkflowLog log : process.getExecutionLogs()) {
 	    SignatureMetaDataWorkflowLog metadataLog = new SignatureMetaDataWorkflowLog(log);
@@ -60,6 +64,22 @@ public class SignatureMetaDataProcess extends SignatureMetaData<WorkflowProcess>
 
     public void setProcessNumber(String processNumber) {
 	this.processNumber = processNumber;
+    }
+
+    public DateTime getCreationDate() {
+	return creationDate;
+    }
+
+    public void setCreationDate(DateTime creationDate) {
+	this.creationDate = creationDate;
+    }
+
+    public String getDescription() {
+	return description;
+    }
+
+    public void setDescription(String description) {
+	this.description = description;
     }
 
 }

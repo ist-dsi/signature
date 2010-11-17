@@ -2,6 +2,7 @@
 	<slot name="identification" />
 	<slot name="user" />
 	<slot name="sealed" />
+	<slot name="createdDateTime" />
 	<slot name="sealedDateTime" />
 </schema>
 

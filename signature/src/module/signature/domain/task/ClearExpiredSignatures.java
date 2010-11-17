@@ -2,10 +2,7 @@ package module.signature.domain.task;
 
 import module.signature.domain.SignatureIntention;
 import module.signature.domain.SignatureIntentionMulti;
-import module.signature.domain.SignatureQueue;
 import module.signature.domain.SignatureSystem;
-import myorg.domain.MyOrg;
-import myorg.domain.User;
 
 public class ClearExpiredSignatures extends ClearExpiredSignatures_Base {
 
@@ -38,15 +35,14 @@ public class ClearExpiredSignatures extends ClearExpiredSignatures_Base {
 	}
 
 	// clean all expired queues
-	for (User u : MyOrg.getInstance().getUser()) {
-	    if (u.hasSignatureQueue()) {
-		SignatureQueue queue = u.getSignatureQueue();
-
-		if (queue.getExpire() != null && queue.getExpire().isBeforeNow()) {
-		    queue.clear();
-		}
-	    }
-	}
+	/*
+	 * for (User u : MyOrg.getInstance().getUser()) { if
+	 * (u.hasSignatureQueue()) { SignatureQueue queue =
+	 * u.getSignatureQueue();
+	 * 
+	 * if (queue.getExpire() != null && queue.getExpire().isBeforeNow()) {
+	 * queue.clear(); } } }
+	 */
 
 	long estimatedTime = (long) ((System.nanoTime() - startTime) / 1000000.0);
 	System.out.println("[cron] done in " + estimatedTime + "ms");

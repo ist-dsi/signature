@@ -11,15 +11,6 @@
 <%@page import="java.util.List"%>
 
 
-<logic:present name="queue">
-	<logic:notEmpty name="queue" property="expire">
-		<p><html:link action="/signatureAction.do?method=showQueue"><bean:write name="queue" property="signatureIntentionsCount" /> assinaturas pendentes</html:link></p>
-		<p>Expira: <bean:write name="queue" property="expire.hourOfDay" />:<bean:write name="queue" property="expire.minuteOfHour" /></p>
-	</logic:notEmpty>
-	<logic:empty name="queue" property="expire">
-		<p>Não tem assinaturas pendentes</p>
-	</logic:empty>
+<logic:present name="signaturesCount">
+	<p><html:link action="/signature.do?method=history"><bean:write name="signaturesCount" /> assinaturas </html:link></p>
 </logic:present>
-<logic:notPresent name="queue">
-	<b>Não tem queue..</b>
-</logic:notPresent>

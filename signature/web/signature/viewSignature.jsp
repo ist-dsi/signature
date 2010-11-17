@@ -15,11 +15,8 @@
 	</fr:layout>
 </fr:view>
 
+<br />
+
 <code>
-<bean:write name="signIntention" property="signatureContent" />
+<bean:write name="signIntention" property="content" />
 </code> 
-<br /><br />
-<bean:define id="signatureId" name="signIntention" property="externalId"/>
-<html:link page="<%= "/signatureAction.do?method=deleteSignature&objectId=" + signatureId %>">
->> Apagar Assinatura 
-</html:link>

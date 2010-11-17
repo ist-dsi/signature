@@ -18,7 +18,6 @@ public class SignatureIntentionActivity<P extends WorkflowProcess, AI extends Ac
 
     public SignatureIntentionActivity(ActivityLog log, AI ai) {
 	super();
-
 	init(log, ai);
     }
 
@@ -56,8 +55,6 @@ public class SignatureIntentionActivity<P extends WorkflowProcess, AI extends Ac
 
     @Override
     protected void finalizeSignature() {
-	getActivity().execute(getActivityInformation(), getSignObject());
-	getSignObject().updateWhenOperationWasRan();
     }
 
 }

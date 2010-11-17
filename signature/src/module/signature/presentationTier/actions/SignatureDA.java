@@ -33,7 +33,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import module.signature.domain.SignatureIntention;
 import module.signature.domain.SignatureQueue;
-import module.signature.domain.SignatureSystem;
 import myorg.applicationTier.Authenticate.UserView;
 import myorg.domain.MyOrg;
 import myorg.domain.User;
@@ -43,13 +42,10 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
 
-import pt.ist.fenixWebFramework.services.Service;
 import pt.ist.fenixWebFramework.struts.annotations.Mapping;
 
 @Mapping(path = "/signature")
 public class SignatureDA extends ContextBaseAction {
-
-    private final boolean TOKENS_ACTIVE = true;
 
     protected SignatureQueue getSignatureQueue(HttpServletRequest request) {
 	return getDomainObject(request, "OID");
@@ -57,6 +53,10 @@ public class SignatureDA extends ContextBaseAction {
 
     protected SignatureIntention getSignatureIntention(HttpServletRequest request) {
 	return getDomainObject(request, "objectId");
+    }
+
+    protected SignatureIntention getSignatureIntention2(HttpServletRequest request) {
+	return getDomainObject(request, "OID");
     }
 
     public ActionForward configure(final ActionMapping mapping, final ActionForm form, final HttpServletRequest request,
@@ -79,43 +79,40 @@ public class SignatureDA extends ContextBaseAction {
     public ActionForward history(final ActionMapping mapping, final ActionForm form, final HttpServletRequest request,
 	    final HttpServletResponse response) {
 
-	request.setAttribute("signatures", SignatureSystem.getInstance().getSignatures());
+	List<SignatureIntention> pending = new ArrayList<SignatureIntention>();
+	List<SignatureIntention> sealed = new ArrayList<SignatureIntention>();
+
+	for (SignatureIntention signature : UserView.getCurrentUser().getSignatureIntentions()) {
+	    if (signature.isSealed()) {
+		sealed.add(signature);
+	    } else {
+		pending.add(signature);
+	    }
+	}
+
+	request.setAttribute("pending", pending);
+	request.setAttribute("sealed", sealed);
 
 	return forward(request, "/signature/history.jsp");
-    }
-
-    public ActionForward createQueue2(final ActionMapping mapping, final ActionForm form, final HttpServletRequest request,
-	    final HttpServletResponse response) {
-
-	createQueue(UserView.getCurrentUser());
-
-	return configure(mapping, form, request, response);
-    }
-
-    public ActionForward deleteQueue(final ActionMapping mapping, final ActionForm form, final HttpServletRequest request,
-	    final HttpServletResponse response) {
-
-	// TODO restrict access to managers..
-
-	SignatureQueue queue = getSignatureQueue(request);
-
-	queue.delete();
-
-	return configure(mapping, form, request, response);
     }
 
     public ActionForward viewSignature(final ActionMapping mapping, final ActionForm form, final HttpServletRequest request,
 	    final HttpServletResponse response) {
 
-	final SignatureIntention signatureIntention = getSignatureIntention(request);
+	final SignatureIntention signatureIntention = getSignatureIntention2(request);
 
 	request.setAttribute("signIntention", signatureIntention);
 
 	return forward(request, "/signature/viewSignature.jsp");
     }
 
-    @Service
-    private void createQueue(User user) {
-	user.setSignatureQueue(new SignatureQueue());
+    public ActionForward createSignature(final ActionMapping mapping, final ActionForm form, final HttpServletRequest request,
+	    final HttpServletResponse response) {
+
+	final SignatureIntention signIntention = getSignatureIntention2(request);
+
+	request.setAttribute("signIntention", signIntention);
+
+	return forward(request, "/signature/createSignature.jsp");
     }
 }

@@ -7,6 +7,7 @@ import module.signature.exception.SignatureNotSealedException;
 import module.signature.metadata.SignatureMetaData;
 import module.signature.metadata.SignatureMetaDataRoot;
 import module.signature.util.Signable;
+import module.signature.util.SignableObject;
 import module.signature.util.exporter.ExporterException;
 import module.signature.util.exporter.SignatureExporter;
 import myorg.applicationTier.Authenticate.UserView;
@@ -26,13 +27,22 @@ abstract public class SignatureIntention extends SignatureIntention_Base impleme
 
 	setSignatureSystem(SignatureSystem.getInstance());
 	setUser(UserView.getCurrentUser());
-	setActivated(false);
+	setActivated(true);
 
-	setTokenInUsed(false);
-	setTokenOutUsed(false);
-	setExpire(new DateTime().plusMinutes(INTENTION_MINUTES_LIMIT));
+	setCreatedDateTime(new DateTime());
+	setExpire(null);
 
 	generateTokens();
+    }
+
+    protected void init(SignableObject signable) {
+	setSignObjectId(signable.getIdentification());
+
+	try {
+	    setContent(SignatureSystem.exportSignature(this));
+	} catch (ExporterException e) {
+	    e.printStackTrace();
+	}
     }
 
     @Override
@@ -70,9 +80,6 @@ abstract public class SignatureIntention extends SignatureIntention_Base impleme
 	finalizeSignature();
 	setRelation(this);
 	setSealedDateTime(new DateTime());
-
-	// clean user queue
-	SignatureSystem.getInstance().clearQueue();
     }
 
     /**
@@ -123,6 +130,9 @@ abstract public class SignatureIntention extends SignatureIntention_Base impleme
     }
 
     private void generateTokens() {
+	setTokenInUsed(false);
+	setTokenOutUsed(false);
+
 	setTokenIn(RandomStringUtils.randomAlphanumeric(32));
 	setTokenOut(RandomStringUtils.randomAlphanumeric(32));
     }
@@ -167,7 +177,7 @@ abstract public class SignatureIntention extends SignatureIntention_Base impleme
 	    return;
 	}
 
-	if (getExpire().isBeforeNow()) {
+	if (getExpire() != null && getExpire().isBeforeNow()) {
 	    delete();
 	}
     }

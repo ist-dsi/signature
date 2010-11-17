@@ -18,8 +18,6 @@ public class SignatureIntentionMulti extends SignatureIntentionMulti_Base {
     }
 
     protected void init(SignatureQueue queue) {
-	setActivated(true);
-
 	for (SignatureIntention signIntention : queue.getSignatureIntentions()) {
 	    if (signIntention.getActivated()) {
 		addSignatureIntentions(signIntention);

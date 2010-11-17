@@ -33,12 +33,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import module.signature.domain.SignatureIntention;
-import module.signature.domain.SignatureIntentionMulti;
 import module.signature.domain.SignatureQueue;
 import module.signature.domain.SignatureSystem;
 import module.signature.exception.SignatureExpiredException;
-import module.signature.presentationTier.SignatureLayoutContext;
-import module.signature.util.exporter.ExporterException;
 import myorg.presentationTier.actions.ContextBaseAction;
 
 import org.apache.struts.action.ActionForm;
@@ -46,7 +43,6 @@ import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
 
 import pt.ist.fenixWebFramework.renderers.plugin.RenderersRequestProcessorImpl;
-import pt.ist.fenixWebFramework.services.Service;
 import pt.ist.fenixWebFramework.servlets.commons.UploadedFile;
 import pt.ist.fenixWebFramework.struts.annotations.Mapping;
 
@@ -54,46 +50,6 @@ import pt.ist.fenixWebFramework.struts.annotations.Mapping;
 public class SignatureAction extends ContextBaseAction {
 
     private final boolean TOKENS_ACTIVE = true;
-
-    public ActionForward createSignature(final ActionMapping mapping, final ActionForm form, final HttpServletRequest request,
-	    final HttpServletResponse response) {
-
-	final SignatureIntention signIntention = getSignatureIntention(request);
-
-	setContext(request, new SignatureLayoutContext());
-	activateSignature(signIntention);
-
-	if (SignatureSystem.hasQueue()) {
-
-	    SignatureSystem.getInstance().getQueue().push(signIntention);
-
-	    return forward(request, "/signature/confirmSignatureToQueue.jsp");
-	}
-
-	request.setAttribute("signIntention", signIntention);
-
-	return forward(request, "/signature/createSignature.jsp");
-    }
-
-    @Service
-    private void activateSignature(SignatureIntention signIntention) {
-	signIntention.setActivated(true);
-    }
-
-    public ActionForward showQueue(final ActionMapping mapping, final ActionForm form, final HttpServletRequest request,
-	    final HttpServletResponse response) {
-
-	if (SignatureSystem.hasQueue()) {
-	    SignatureQueue queue = SignatureSystem.getInstance().getQueue();
-	    if (queue.getSignatureIntentionsCount() > 0) {
-		SignatureIntentionMulti signIntention = SignatureIntentionMulti.factory(queue);
-
-		request.setAttribute("signIntention", signIntention);
-	    }
-	}
-
-	return forward(request, "/signature/showQueue.jsp");
-    }
 
     public ActionForward checkSignature(final ActionMapping mapping, final ActionForm form, final HttpServletRequest request,
 	    final HttpServletResponse response) {
@@ -115,7 +71,7 @@ public class SignatureAction extends ContextBaseAction {
 	verifyTokenIn(signature, request);
 
 	try {
-	    String contentToSign = SignatureSystem.exportSignature(signature);
+	    String contentToSign = signature.getContent();
 
 	    OutputStream outputStream = response.getOutputStream();
 	    OutputStreamWriter streamWriter = new OutputStreamWriter(outputStream, "UTF-8");
@@ -128,8 +84,6 @@ public class SignatureAction extends ContextBaseAction {
 	    streamWriter.close();
 
 	} catch (IOException e) {
-	    e.printStackTrace();
-	} catch (ExporterException e) {
 	    e.printStackTrace();
 	} catch (NullPointerException ex) {
 	    ex.printStackTrace();
@@ -195,7 +149,6 @@ public class SignatureAction extends ContextBaseAction {
 	try {
 	    signature.verifyTokenIn(tokenIn);
 	} catch (SignatureExpiredException e) {
-	    // TODO Auto-generated catch block
 	    e.printStackTrace();
 	}
     }
@@ -209,7 +162,6 @@ public class SignatureAction extends ContextBaseAction {
 	try {
 	    signature.verifyTokenOut(tokenOut);
 	} catch (SignatureExpiredException e) {
-	    // TODO Auto-generated catch block
 	    e.printStackTrace();
 	}
     }

@@ -2,7 +2,8 @@ package module.signature.widgets;
 
 import module.dashBoard.presentationTier.WidgetRequest;
 import module.dashBoard.widgets.WidgetController;
-import module.signature.domain.SignatureSystem;
+import module.signature.domain.SignatureIntention;
+import myorg.applicationTier.Authenticate.UserView;
 import myorg.util.BundleUtil;
 import myorg.util.ClassNameBundle;
 
@@ -12,9 +13,15 @@ public class SignatureWidget extends WidgetController {
     @Override
     public void doView(WidgetRequest request) {
 
-	if (SignatureSystem.hasQueue()) {
-	    request.setAttribute("queue", SignatureSystem.getInstance().getQueue());
+	int unsigned = 0;
+
+	for (SignatureIntention signature : UserView.getCurrentUser().getSignatureIntentions()) {
+	    if (!signature.isSealed()) {
+		unsigned++;
+	    }
 	}
+
+	request.setAttribute("signaturesCount", unsigned);
     }
 
     @Override
