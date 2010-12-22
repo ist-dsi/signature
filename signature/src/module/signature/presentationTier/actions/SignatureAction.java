@@ -111,10 +111,14 @@ public class SignatureAction extends ContextBaseAction {
 	    UploadedFile uploadedFile0 = RenderersRequestProcessorImpl.getUploadedFile("file0");
 	    UploadedFile uploadedFile1 = RenderersRequestProcessorImpl.getUploadedFile("file1");
 
-	    System.out.println("file0: ");
-	    System.out.println("---" + new String(uploadedFile0.getFileData()) + "---");
-	    System.out.println("file1: ");
-	    System.out.println("---" + new String(uploadedFile1.getFileData()) + "---");
+	    if (uploadedFile0 != null) {
+		System.out.println("file0: ");
+		System.out.println("---" + new String(uploadedFile0.getFileData()) + "---");
+	    }
+	    if (uploadedFile1 != null) {
+		System.out.println("file1: ");
+		System.out.println("---" + new String(uploadedFile1.getFileData()) + "---");
+	    }
 
 	    signIntention.seal(uploadedFile0, uploadedFile1);
 

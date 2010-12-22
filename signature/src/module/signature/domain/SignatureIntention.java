@@ -1,15 +1,16 @@
 package module.signature.domain;
 
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
+
 import module.signature.exception.SignatureException;
 import module.signature.exception.SignatureExpiredException;
 import module.signature.exception.SignatureMetaDataInvalidException;
 import module.signature.exception.SignatureNotSealedException;
 import module.signature.metadata.SignatureMetaData;
-import module.signature.metadata.SignatureMetaDataRoot;
 import module.signature.util.Signable;
 import module.signature.util.SignableObject;
 import module.signature.util.exporter.ExporterException;
-import module.signature.util.exporter.SignatureExporter;
 import myorg.applicationTier.Authenticate.UserView;
 
 import org.apache.commons.lang.RandomStringUtils;
@@ -35,19 +36,39 @@ abstract public class SignatureIntention extends SignatureIntention_Base impleme
 	generateTokens();
     }
 
-    protected void init(SignableObject signable) {
-	setSignObjectId(signable.getIdentification());
-
+    protected void init() {
 	try {
-	    setContent(SignatureSystem.exportSignature(this));
+	    generateContent();
 	} catch (ExporterException e) {
 	    e.printStackTrace();
 	}
     }
 
+    protected void init(SignableObject signable) {
+	setSignObjectId(signable.getIdentification());
+
+	try {
+	    generateContent();
+	} catch (ExporterException e) {
+	    e.printStackTrace();
+	}
+    }
+
+    protected void generateContent() throws ExporterException {
+	setContent(SignatureSystem.getInstance().generateSignature(this));
+    }
+
     @Override
     final public String getIdentification() {
 	return getExternalId();
+    }
+
+    public String getDescription() {
+	return getSignObject().getSignatureDescription();
+    }
+
+    public String getType() {
+	return "Assinatura Simples";
     }
 
     abstract public <T extends Signable> T getSignObject();
@@ -60,6 +81,10 @@ abstract public class SignatureIntention extends SignatureIntention_Base impleme
      * @return {@link SignatureMetaData}
      */
     abstract public <T extends SignatureMetaData> T getMetaData();
+
+    public Source getTransformationTemplate() {
+	return new StreamSource(getClass().getResourceAsStream("/templates/test.xsl"));
+    }
 
     abstract protected void setRelation(SignatureIntention signature);
 
@@ -101,7 +126,7 @@ abstract public class SignatureIntention extends SignatureIntention_Base impleme
      * 
      * @return {@link SignatureMetaData}
      */
-    protected SignatureMetaDataRoot rebuildMetaData() throws SignatureException {
+    protected SignatureMetaData rebuildMetaData() throws SignatureException {
 	return SignatureSystem.rebuildMetaData(this);
     }
 
@@ -117,10 +142,6 @@ abstract public class SignatureIntention extends SignatureIntention_Base impleme
 	rebuildMetaData().checkData(this);
     }
 
-    /**
-     * 
-     */
-
     public String getSignatureContent() throws SignatureNotSealedException {
 	if (getSignatureFile() == null) {
 	    throw new SignatureNotSealedException();
@@ -135,14 +156,6 @@ abstract public class SignatureIntention extends SignatureIntention_Base impleme
 
 	setTokenIn(RandomStringUtils.randomAlphanumeric(32));
 	setTokenOut(RandomStringUtils.randomAlphanumeric(32));
-    }
-
-    public void getContentToSign(SignatureExporter signatureExporter) {
-	try {
-	    signatureExporter.export(getMetaData());
-	} catch (ExporterException e) {
-	    e.printStackTrace();
-	}
     }
 
     @Service

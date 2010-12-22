@@ -57,4 +57,8 @@ public class SignatureIntentionActivity<P extends WorkflowProcess, AI extends Ac
     protected void finalizeSignature() {
     }
 
+    @Override
+    public String getSignatureDescription() {
+	return "Activity";
+    }
 }

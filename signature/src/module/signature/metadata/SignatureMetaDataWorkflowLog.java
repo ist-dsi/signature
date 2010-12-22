@@ -1,17 +1,18 @@
 package module.signature.metadata;
 
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
 
 import module.signature.exception.SignatureMetaDataInvalidException;
 import module.workflow.domain.WorkflowLog;
 
 @XmlRootElement(name = "log")
-@XmlType(propOrder = { "processId", "description" })
 public class SignatureMetaDataWorkflowLog<T extends WorkflowLog> extends SignatureMetaData<WorkflowLog> {
 
     private String processId;
     private String description;
+    private String activityExecutorId;
+    private String activityExecutor;
+    private String whenOperationWasRan;
 
     public SignatureMetaDataWorkflowLog() {
 	super();
@@ -22,6 +23,9 @@ public class SignatureMetaDataWorkflowLog<T extends WorkflowLog> extends Signatu
 
 	setProcessId(log.getProcess().getExternalId());
 	setDescription(log.getDescription());
+	setActivityExecutorId(log.getActivityExecutor().getExternalId());
+	setActivityExecutor(log.getActivityExecutor().getPresentationName());
+	setWhenOperationWasRan(log.getWhenOperationWasRan().toString("yyyy-MM-dd kk:mm"));
     }
 
     @Override
@@ -44,6 +48,30 @@ public class SignatureMetaDataWorkflowLog<T extends WorkflowLog> extends Signatu
 
     public void setProcessId(String processId) {
 	this.processId = processId;
+    }
+
+    public String getActivityExecutorId() {
+	return activityExecutorId;
+    }
+
+    public void setActivityExecutorId(String activityExecutorId) {
+	this.activityExecutorId = activityExecutorId;
+    }
+
+    public String getActivityExecutor() {
+	return activityExecutor;
+    }
+
+    public void setActivityExecutor(String activityExecutor) {
+	this.activityExecutor = activityExecutor;
+    }
+
+    public String getWhenOperationWasRan() {
+	return whenOperationWasRan;
+    }
+
+    public void setWhenOperationWasRan(String whenOperationWasRan) {
+	this.whenOperationWasRan = whenOperationWasRan;
     }
 
 }

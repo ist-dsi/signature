@@ -14,7 +14,7 @@ import module.signature.exception.SignatureMetaDataInvalidException;
 @XmlRootElement(name = "multi")
 public class SignatureMetaDataMulti extends SignatureMetaData<SignatureIntentionMulti> {
 
-    @XmlElementRefs({ @XmlElementRef(type = SignatureMetaDataProcess.class),
+    @XmlElementRefs({ @XmlElementRef(type = SignatureProcessMetaData.class),
 	    @XmlElementRef(type = SignatureMetaDataWorkflowLog.class), @XmlElementRef(type = SignatureMetaDataActivityLog.class) })
     private List<SignatureMetaData> list;
 
@@ -48,7 +48,7 @@ public class SignatureMetaDataMulti extends SignatureMetaData<SignatureIntention
 	}
 
 	if (verified < multi.getSignatureIntentionsCount()) {
-	    throw new SignatureMetaDataInvalidException("Not all metadata could me found");
+	    throw new SignatureMetaDataInvalidException("Not all metadata could be found");
 	}
     }
 

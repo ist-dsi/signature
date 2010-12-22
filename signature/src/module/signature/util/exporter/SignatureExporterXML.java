@@ -2,47 +2,73 @@ package module.signature.util.exporter;
 
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
+import module.signature.domain.SignatureIntention;
 import module.signature.metadata.SignatureMetaData;
 import module.signature.metadata.SignatureMetaDataRoot;
 
-public class SignatureExporterXML<T extends SignatureMetaData> implements SignatureExporter<T> {
+public class SignatureExporterXML {
+
+    private final Set<Class> metaDataClasses = new HashSet<Class>();
 
     public SignatureExporterXML() {
     }
 
-    @Override
-    public String export(T sign) throws ExporterException {
+    public SignatureExporterXML(Set<Class> classesToUse) {
+	if (classesToUse != null) {
+	    metaDataClasses.addAll(classesToUse);
+	}
+    }
+
+    public String export(SignatureIntention signature, SignatureMetaData metaData) throws ExporterException {
 
 	try {
-	    JAXBContext context = JAXBContext.newInstance(sign.getClass());
+	    metaDataClasses.add(metaData.getClass());
+
+	    Class[] clazzes = new Class[metaDataClasses.size()];
+
+	    int i = 0;
+	    for (Class clazz : metaDataClasses) {
+		clazzes[i] = clazz;
+		i++;
+	    }
+
+	    JAXBContext context = JAXBContext.newInstance(clazzes);
 
 	    Marshaller m = context.createMarshaller();
 	    m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 
-	    StringWriter result = new StringWriter();
-	    m.marshal(sign, result);
+	    StringWriter writer = new StringWriter();
+	    m.marshal(metaData, writer);
 
-	    return result.toString();
+	    String xml = writer.toString();
+
+	    System.out.println("XML Generated: ----------------");
+	    System.out.println(xml);
+	    System.out.println("-----");
+
+	    return xml;
+
 	} catch (JAXBException ex) {
 	    throw new ExporterException(ex);
 	}
     }
 
-    @Override
-    public T rebuild(String content) throws ExporterException {
+    public SignatureMetaData rebuild(String content) throws ExporterException {
 	try {
 	    JAXBContext context = JAXBContext.newInstance(SignatureMetaDataRoot.class);
 	    Unmarshaller m = context.createUnmarshaller();
 
 	    StringReader reader = new StringReader(content);
 
-	    return (T) m.unmarshal(reader);
+	    return (SignatureMetaData) m.unmarshal(reader);
 	} catch (JAXBException ex) {
 	    throw new ExporterException(ex);
 	}

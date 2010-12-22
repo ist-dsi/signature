@@ -3,45 +3,38 @@ package module.signature.metadata;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import module.signature.exception.SignatureMetaDataInvalidException;
 import module.workflow.domain.WorkflowLog;
 import module.workflow.domain.WorkflowProcess;
 
-import org.joda.time.DateTime;
-
 @XmlRootElement(name = "process")
-@XmlAccessorType(XmlAccessType.FIELD)
-public class SignatureMetaDataProcess extends SignatureMetaData<WorkflowProcess> {
+public class SignatureProcessMetaData<T extends WorkflowProcess> extends SignatureMetaData<WorkflowProcess> {
 
     private String processNumber;
-    private DateTime creationDate;
+    private String creationDate;
+    private String creationPerson;
     private String description;
 
     private List<SignatureMetaDataWorkflowLog> logs;
 
-    public SignatureMetaDataProcess() {
+    public SignatureProcessMetaData() {
 	super();
     }
 
-    public SignatureMetaDataProcess(WorkflowProcess process) {
+    public SignatureProcessMetaData(WorkflowProcess process) {
 	super(process);
 
-	logs = new ArrayList<SignatureMetaDataWorkflowLog>();
+	setLogs(new ArrayList<SignatureMetaDataWorkflowLog>());
 
 	setProcessNumber(process.getProcessNumber());
-	setCreationDate(process.getCreationDate());
+	setCreationDate(process.getCreationDate().toString("yyyy-MM-dd"));
+	setCreationPerson(process.getProcessCreator().getShortPresentationName());
 	setDescription(process.getDescription());
 
 	for (WorkflowLog log : process.getExecutionLogs()) {
-	    SignatureMetaDataWorkflowLog metadataLog = new SignatureMetaDataWorkflowLog(log);
-	    metadataLog.setProcessId(process.getIdentification());
-	    metadataLog.setDescription(log.getDescription());
-
-	    addLog(metadataLog);
+	    getLogs().add(new SignatureMetaDataWorkflowLog(log));
 	}
     }
 
@@ -54,8 +47,8 @@ public class SignatureMetaDataProcess extends SignatureMetaData<WorkflowProcess>
 	return logs;
     }
 
-    public void addLog(SignatureMetaDataWorkflowLog metaDataLog) {
-	logs.add(metaDataLog);
+    public void setLogs(List<SignatureMetaDataWorkflowLog> logs) {
+	this.logs = logs;
     }
 
     public String getProcessNumber() {
@@ -66,11 +59,11 @@ public class SignatureMetaDataProcess extends SignatureMetaData<WorkflowProcess>
 	this.processNumber = processNumber;
     }
 
-    public DateTime getCreationDate() {
+    public String getCreationDate() {
 	return creationDate;
     }
 
-    public void setCreationDate(DateTime creationDate) {
+    public void setCreationDate(String creationDate) {
 	this.creationDate = creationDate;
     }
 
@@ -82,4 +75,11 @@ public class SignatureMetaDataProcess extends SignatureMetaData<WorkflowProcess>
 	this.description = description;
     }
 
+    public String getCreationPerson() {
+	return creationPerson;
+    }
+
+    public void setCreationPerson(String creationPerson) {
+	this.creationPerson = creationPerson;
+    }
 }

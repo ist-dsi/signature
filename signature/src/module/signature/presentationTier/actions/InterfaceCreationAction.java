@@ -31,7 +31,10 @@ public class InterfaceCreationAction extends ContextBaseAction {
 		"resources.SignatureResources", "label.module.signature", UserGroup.getInstance());
 
 	ActionNode.createActionNode(virtualHost, homeNode, "/signature", "history", "resources.SignatureResources",
-		"link.sideBar.signature.history", Role.getRole(RoleType.MANAGER));
+		"link.sideBar.signature.history", UserGroup.getInstance());
+
+	ActionNode.createActionNode(virtualHost, homeNode, "/signature", "sealed", "resources.SignatureResources",
+		"link.sideBar.signature.sealed", UserGroup.getInstance());
 
 	ActionNode.createActionNode(virtualHost, homeNode, "/signature", "configure", "resources.SignatureResources",
 		"link.sideBar.signature.configure", Role.getRole(RoleType.MANAGER));

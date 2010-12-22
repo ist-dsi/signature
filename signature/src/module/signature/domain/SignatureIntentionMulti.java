@@ -1,28 +1,37 @@
 package module.signature.domain;
 
+import java.util.Set;
+
 import module.signature.metadata.SignatureMetaDataMulti;
-import module.signature.util.exporter.SignatureExporter;
+import module.signature.util.exporter.ExporterException;
 import pt.ist.fenixWebFramework.services.Service;
 
 public class SignatureIntentionMulti extends SignatureIntentionMulti_Base {
 
     @Service
-    public static SignatureIntentionMulti factory(SignatureQueue queue) {
-	return new SignatureIntentionMulti(queue);
+    public static SignatureIntentionMulti factory(Set<SignatureIntention> signatures) {
+	return new SignatureIntentionMulti(signatures);
     }
 
-    protected SignatureIntentionMulti(SignatureQueue queue) {
+    protected SignatureIntentionMulti(Set<SignatureIntention> signatures) {
 	super();
 
-	init(queue);
+	init(signatures);
     }
 
-    protected void init(SignatureQueue queue) {
-	for (SignatureIntention signIntention : queue.getSignatureIntentions()) {
+    protected void init(Set<SignatureIntention> signatures) {
+	for (SignatureIntention signIntention : signatures) {
 	    if (signIntention.getActivated()) {
 		addSignatureIntentions(signIntention);
 	    }
 	}
+
+	super.init();
+    }
+
+    @Override
+    protected void generateContent() throws ExporterException {
+	setContent(SignatureSystem.getInstance().generateSignature(this));
     }
 
     @Override
@@ -43,16 +52,19 @@ public class SignatureIntentionMulti extends SignatureIntentionMulti_Base {
     }
 
     @Override
-    public void getContentToSign(SignatureExporter signatureExporter) {
-	for (SignatureIntention signIntention : getSignatureIntentions()) {
-	    signIntention.getContentToSign(signatureExporter);
-	}
-    }
-
-    @Override
     protected void finalizeSignature() {
 	for (SignatureIntention signIntention : getSignatureIntentions()) {
 	    signIntention.finalizeSignature();
 	}
+    }
+
+    @Override
+    public String getSignatureDescription() {
+	return "Multi";
+    }
+
+    @Override
+    public String getType() {
+	return "Várias Assinaturas";
     }
 }

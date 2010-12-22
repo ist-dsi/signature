@@ -25,13 +25,22 @@
 
 package module.signature.presentationTier.actions;
 
+import java.io.IOException;
+import java.io.StringBufferInputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import module.signature.domain.SignatureIntention;
+import module.signature.domain.SignatureIntentionMulti;
 import module.signature.domain.SignatureQueue;
 import myorg.applicationTier.Authenticate.UserView;
 import myorg.domain.MyOrg;
@@ -41,8 +50,12 @@ import myorg.presentationTier.actions.ContextBaseAction;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
+import org.apache.struts.action.ActionRedirect;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 
 import pt.ist.fenixWebFramework.struts.annotations.Mapping;
+import pt.ist.fenixframework.pstm.AbstractDomainObject;
 
 @Mapping(path = "/signature")
 public class SignatureDA extends ContextBaseAction {
@@ -76,22 +89,49 @@ public class SignatureDA extends ContextBaseAction {
 	return forward(request, "/signature/configure.jsp");
     }
 
-    public ActionForward history(final ActionMapping mapping, final ActionForm form, final HttpServletRequest request,
+    public ActionForward sealed(final ActionMapping mapping, final ActionForm form, final HttpServletRequest request,
 	    final HttpServletResponse response) {
 
-	List<SignatureIntention> pending = new ArrayList<SignatureIntention>();
 	List<SignatureIntention> sealed = new ArrayList<SignatureIntention>();
 
 	for (SignatureIntention signature : UserView.getCurrentUser().getSignatureIntentions()) {
 	    if (signature.isSealed()) {
 		sealed.add(signature);
-	    } else {
-		pending.add(signature);
+	    }
+	}
+
+	request.setAttribute("sealed", sealed);
+
+	return forward(request, "/signature/sealed.jsp");
+    }
+
+    public ActionForward history(final ActionMapping mapping, final ActionForm form, final HttpServletRequest request,
+	    final HttpServletResponse response) {
+
+	String filterBy = (String) getAttribute(request, "filterBy");
+	if (filterBy == null) {
+	    filterBy = "";
+	}
+
+	HashMap<String, String> filters = new HashMap<String, String>();
+	List<SignatureIntention> pending = new ArrayList<SignatureIntention>();
+
+	for (SignatureIntention signature : UserView.getCurrentUser().getSignatureIntentions()) {
+	    if (!signature.isSealed() && !(signature instanceof SignatureIntentionMulti)) {
+		filters.put(signature.getClass().getName(), signature.getType());
+		try {
+		    if (filterBy.equals("") || signature.getClass().isAssignableFrom(Class.forName(filterBy))) {
+			pending.add(signature);
+		    }
+		} catch (ClassNotFoundException e) {
+		    e.printStackTrace();
+		}
 	    }
 	}
 
 	request.setAttribute("pending", pending);
-	request.setAttribute("sealed", sealed);
+	request.setAttribute("filters", filters);
+	request.setAttribute("filterBy", filterBy);
 
 	return forward(request, "/signature/history.jsp");
     }
@@ -104,6 +144,60 @@ public class SignatureDA extends ContextBaseAction {
 	request.setAttribute("signIntention", signatureIntention);
 
 	return forward(request, "/signature/viewSignature.jsp");
+    }
+
+    public ActionForward multiSignature(final ActionMapping mapping, final ActionForm form, final HttpServletRequest request,
+	    final HttpServletResponse response) {
+	final String[] signatureIds = request.getParameterValues("signatureIds");
+
+	if (signatureIds == null) {
+	    return history(mapping, form, request, response);
+	}
+
+	final Set<SignatureIntention> signatures = new HashSet<SignatureIntention>();
+	for (final String signatureId : signatureIds) {
+	    final SignatureIntention signatureIntention = AbstractDomainObject.fromExternalId(signatureId);
+	    signatures.add(signatureIntention);
+	}
+
+	SignatureIntention multi = SignatureIntentionMulti.factory(signatures);
+
+	return new ActionRedirect("signature.do?method=createSignature&OID=" + multi.getExternalId());
+    }
+
+    public ActionForward viewSignatureContent(final ActionMapping mapping, final ActionForm form,
+	    final HttpServletRequest request, final HttpServletResponse response) {
+
+	final SignatureIntention signatureIntention = getSignatureIntention2(request);
+
+	try {
+	    response.getOutputStream().write(signatureIntention.getContent().getBytes());
+	} catch (IOException e) {
+	    e.printStackTrace();
+	}
+
+	return null;
+    }
+
+    public ActionForward viewSignaturePdf(final ActionMapping mapping, final ActionForm form, final HttpServletRequest request,
+	    final HttpServletResponse response) {
+
+	final SignatureIntention signatureIntention = getSignatureIntention2(request);
+
+	try {
+	    DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+	    Document doc = builder.parse(new StringBufferInputStream(signatureIntention.getContent()));
+
+	    response.getOutputStream().write("dfd".getBytes());
+	} catch (IOException e) {
+	    e.printStackTrace();
+	} catch (SAXException e) {
+	    e.printStackTrace();
+	} catch (ParserConfigurationException e) {
+	    e.printStackTrace();
+	}
+
+	return null;
     }
 
     public ActionForward createSignature(final ActionMapping mapping, final ActionForm form, final HttpServletRequest request,
