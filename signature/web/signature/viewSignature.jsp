@@ -14,9 +14,3 @@
 		<fr:property name="sortBy" value="whenOperationWasRan"/>
 	</fr:layout>
 </fr:view>
-
-<br />
-
-<code>
-<bean:write name="signIntention" property="content" />
-</code> 

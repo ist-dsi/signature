@@ -1,51 +1,104 @@
+<%@page import="module.signature.domain.SignatureIntention"%>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="/WEB-INF/struts-html.tld" prefix="html" %>
 <%@ taglib uri="/WEB-INF/struts-bean.tld" prefix="bean" %>
 <%@ taglib uri="/WEB-INF/struts-logic.tld" prefix="logic" %>
 <%@ taglib uri="/WEB-INF/fenix-renderers.tld" prefix="fr" %>
 
-<h2>Assinaturas Pendentes</h2>
+<div style="float:right">
+<form action="" method="post">
+<% String filterBy = (String) request.getAttribute("filterBy"); %>
+<select name="filterBy">
+	<option value=""><bean:message bundle="SIGNATURE_RESOURCES" key="label.module.signature.all" /></option>
+	<logic:iterate name="filters" id="entry">
+		<bean:define name="entry" property="key" id="entryKey" />
+		<bean:define name="entry" property="value" id="entryValue" />
+		<logic:equal name="entryKey" value="<%= filterBy %>">
+			<option selected="selected" value="<%= entryKey %>"><%= entryValue %></option>
+		</logic:equal>
+		<login:notEqual name="entryKey" value="<%= filterBy %>">
+			<option value="<%= entryKey %>"><%= entryValue %></option>
+		</login:notEqual>
+	</logic:iterate>
+</select>
+<button>Filtrar</button>
+</form>
+</div>
 
-<fr:view name="pending">
-	<fr:layout name="tabular">
+<h2><bean:message bundle="SIGNATURE_RESOURCES" key="label.module.signature.history" /></h2>
+
+<form action="<%= request.getContextPath() + "/signature.do" %>" method="post">
+	<html:hidden property="method" value="multiSignature"/>
+
+	<div id="signatureTable">
+	<table class="tstyle3 thleft tdleft mbottom2" width="100%">
+		<tr>
+			<th><input type="checkbox" id="selectAllSignatures" /></th> 
+			<th><bean:message bundle="SIGNATURE_RESOURCES" key="label.module.signature.createdDateTime"/></th>
+			<th><bean:message bundle="SIGNATURE_RESOURCES" key="label.module.signature.description"/></th>
+			<th><bean:message bundle="SIGNATURE_RESOURCES" key="label.module.signature.actions"/></th>
+		</tr>
+		<bean:define name="pending" id="pending" toScope="request"  type="java.util.List<SignatureIntention>" />
+		<%
+			for (final SignatureIntention signature : pending) {
+		%>
+		<tr>
+			<td><input type="checkbox" name="signatureIds" value="<%= signature.getExternalId() %>" /></td>
+			<% String datetime = (signature.getCreatedDateTime() != null) ? signature.getCreatedDateTime().toString("dd/MM/yyyy hh:mm") : ""; %>
+			<td><%= datetime %></td>
+			<td><%= signature.getDescription() %></td>
+			<td><a href="<%= request.getContextPath() + "/signature.do?method=createSignature&amp;OID=" + signature.getExternalId() %>" class="secondaryLink">
+				<bean:message bundle="SIGNATURE_RESOURCES" key="link.signature.sign"/>
+				</a> |
+				<a href="<%= request.getContextPath() + "/signature.do?method=viewSignatureContent&amp;OID=" + signature.getExternalId() %>" class="secondaryLink">
+				<bean:message bundle="SIGNATURE_RESOURCES" key="link.signature.view"/>
+				</a>
+			</td>
+		</tr>		
+		<%
+			}
+		%>
+	</table>
 		
-		<fr:property name="classes" value="tstyle3 mvert1 width100pc tdmiddle punits"/>
-		
-		<fr:property name="link(sign)" value="/signature.do?method=createSignature" />
-		<fr:property name="key(sign)" value="link.signature.sign" />
-		<fr:property name="param(sign)" value="OID" />
-		<fr:property name="bundle(sign)" value="SIGNATURE_RESOURCES" />
-		<fr:property name="order(sign)" value="1" />
+	<button><bean:message bundle="SIGNATURE_RESOURCES" key="label.module.signature.signSelected" /></button>
+</form>
 
-		<fr:property name="link(view)" value="/signature.do?method=viewSignature" />
-		<fr:property name="key(view)" value="link.signature.view" />
-		<fr:property name="param(view)" value="OID" />
-		<fr:property name="bundle(view)" value="SIGNATURE_RESOURCES" />
-		<fr:property name="order(view)" value="2" />
+<div style="display: none;" id="example" title="Leitor de Assinaturas">
+<iframe src ="http://www.google.com" style="margin:0;padding:0;border:none;width:100%;height:100%">
+  <p>Your browser does not support iframes.</p>
+</iframe>
+</div>
 
-	</fr:layout>
-	<fr:schema bundle="SIGNATURE_RESOURCES" type="module.signature.domain.SignatureIntention">
-		<fr:slot name="oid" key="label.signature.oid" />
-		<fr:slot name="createdDateTime" key="label.signature.sealedDateTime" />
-	</fr:schema>
-</fr:view>
+<script type="text/javascript">
+$(document).ready(function(){
+	$("#selectAllSignatures").click(function(){
+		$('input[name="signatureIds"]').attr("checked", $(this).attr("checked"));
+	});
+	
+	$('#signatureTable a[href*="viewSignatureContent"]').each(function(){
+		var href = $(this).attr("href");
+		var dialogOpts = {
+			modal: true,
+			bgiframe: true,
+			autoOpen: false,
+			height: 550,
+			width: 900,
+			draggable: true,
+			resizeable: true,
+			open: function() {
+				//$("#example iframe").src(href);
+			}
+		};
 
-<h2>Assinaturas Concluidas</h2>
+		$("#example").dialog(dialogOpts);	//end dialog
 
-<fr:view name="sealed">
-	<fr:layout name="tabular">
-		
-		<fr:property name="classes" value="tstyle3 mvert1 width100pc tdmiddle punits"/>
-		
-		<fr:property name="link(view)" value="/signature.do?method=viewSignature" />
-		<fr:property name="key(view)" value="link.signature.view" />
-		<fr:property name="param(view)" value="OID" />
-		<fr:property name="bundle(view)" value="SIGNATURE_RESOURCES" />
-		<fr:property name="order(view)" value="2" />
+		$(this).click(function(){
+			$("#example iframe").attr('src', href);			
+			$("#example").dialog("open");
 
-	</fr:layout>
-	<fr:schema bundle="SIGNATURE_RESOURCES" type="module.signature.domain.SignatureIntention">
-		<fr:slot name="oid" key="label.signature.oid" />
-		<fr:slot name="sealedDateTime" key="label.signature.sealedDateTime" />
-	</fr:schema>
-</fr:view>
+			return false;
+		});
+	});
+});	
+</script>
+
