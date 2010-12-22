@@ -50,7 +50,6 @@ import myorg.presentationTier.actions.ContextBaseAction;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
-import org.apache.struts.action.ActionRedirect;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -162,7 +161,7 @@ public class SignatureDA extends ContextBaseAction {
 
 	SignatureIntention multi = SignatureIntentionMulti.factory(signatures);
 
-	return new ActionRedirect("signature.do?method=createSignature&OID=" + multi.getExternalId());
+	return createSignature(request, multi);
     }
 
     public ActionForward viewSignatureContent(final ActionMapping mapping, final ActionForm form,
@@ -205,8 +204,14 @@ public class SignatureDA extends ContextBaseAction {
 
 	final SignatureIntention signIntention = getSignatureIntention2(request);
 
+	return createSignature(request, signIntention);
+    }
+
+    public ActionForward createSignature(final HttpServletRequest request, final SignatureIntention signIntention) {
+
 	request.setAttribute("signIntention", signIntention);
 
 	return forward(request, "/signature/createSignature.jsp");
     }
+
 }
