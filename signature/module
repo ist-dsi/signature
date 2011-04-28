@@ -1,2 +1,2 @@
 name=signature
-depends=core
+depends=core,fileSupport,dashBoard,workflow
