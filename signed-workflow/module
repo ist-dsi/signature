@@ -1,0 +1,2 @@
+name=signed-workflow
+depends=core,workflow,signature
