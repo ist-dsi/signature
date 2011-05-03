@@ -1,4 +1,5 @@
 
+<!-- 
 <renderer type="module.signature.domain.SignatureIntention" class="module.signature.presentationTier.renderers.SignatureLinkRenderer" >
 </renderer>
 
@@ -7,4 +8,5 @@
 	<property name="archive" value="public-jars/aeq27.jar,public-jars/commons-httpclient-3.0.jar,public-jars/commons-logging-1.1.1.jar,public-jars/commons-codec-1.3.jar,public-jars/core-renderer.jar" />
 	<property name="width" value="10" />
 	<property name="height" value="10" />
-</renderer>
+</renderer> 
+-->

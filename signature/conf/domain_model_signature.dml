@@ -1,101 +1,91 @@
 package module.signature.domain; 
 
-class SignatureSystem {
-	Integer queueMinutesLimit;
-	Integer intentionMinutesLimit;
+enum module.signature.domain.data.SignatureFormat   as SignatureFormat;
+
+class SignatureSystemRoot {
 }
 
-class SignatureQueue {
-	DateTime expire;	
-}
 
-class SignatureIntention {
-	String signObjectId;
-	Boolean activated;
-	String tokenIn;
-	Boolean tokenInUsed; 
-	String tokenOut;
-	Boolean tokenOutUsed;
-	DateTime expire;
+class Signature {
 	DateTime createdDateTime;
-	DateTime sealedDateTime;
-	String content; 
+	Boolean signed;
 }
 
-class SignatureIntentionMulti extends SignatureIntention {
+class data.SignatureData {
+	SignatureFormat signatureFormat;
 }
 
-class SignatureIntentionObject extends SignatureIntention {
+class data.CounterSignatureData extends data.SignatureData {
 }
 
-class SignatureIntentionActivity extends SignatureIntentionObject {
-	String information;
+class data.FileSignatureData extends data.SignatureData {
 }
 
-class task.ClearExpiredSignatures extends .myorg.domain.scheduler.Task {
+class data.ObjectSignatureData extends data.SignatureData {
 }
 
 /*
- * File Repository 
+ * Signature persistence - always in files
  */
  
-external class .pt.ist.fenixframework.plugins.fileSupport.domain.GenericFile;
- 
-class SignatureFile extends .pt.ist.fenixframework.plugins.fileSupport.domain.GenericFile { }
+external class .module.fileManagement.domain.VersionedFile;
 
-class SignatureRepository {}
+/*
+ * Relations
+ */
 
-relation MyOrgSignatureSystem {
-	.myorg.domain.MyOrg playsRole myOrg;
-	SignatureSystem playsRole signatureSystem;
+
+relation SignatureUserUnsigned {
+	.myorg.domain.User playsRole toBeSignedUser;
+	Signature playsRole unsignedSignatures {
+		multiplicity *;
+	} 
 }
 
-relation SignatureSystemSignatureRepository {
-	SignatureSystem playsRole signatureSystem;
-	SignatureRepository playsRole signatureRepository;
+relation SignatureUserSigned {
+	.myorg.domain.User playsRole signedUser;
+	Signature playsRole signedSignatures {
+		multiplicity *;
+	} 
 }
 
-relation SystemSignatureIntention {
-	SignatureSystem playsRole signatureSystem;
-	SignatureIntention playsRole signatureIntentions {
+relation SignatureSignatureData {
+	data.SignatureData playsRole signatureData {
+		multiplicity 1;
+	}
+	Signature playsRole signature {
+		multiplicity 1;
+	}
+}
+
+
+relation CounterSignatureDataSignature {
+	Signature playsRole counterSignedSignature {
+		multiplicity 1;
+	}
+	data.CounterSignatureData playsRole counterSignatures {
 		multiplicity *;
 	}
 }
 
-relation SignatureIntentionUser {
-	.myorg.domain.User playsRole user;
-	SignatureIntention playsRole signatureIntentions {
+relation CounterSignatureDataCounterSignatureData {
+	data.CounterSignatureData playsRole nextCounterSignatureData;
+	data.CounterSignatureData playsRole previousCounterSignatureData;
+}
+
+
+// the persistence of the signatures is assured through these relations with versionedFile
+
+relation FileSignatureDataVersionedFile {
+	data.FileSignatureData playsRole signatureDomainObject;
+	.module.fileManagement.domain.VersionedFile playsRole persistedSignature;
+} 
+	
+// Root relations
+
+relation SignatureSystemRootSignature {
+	Signature playsRole signatures {
 		multiplicity *;
 	}
-}
-
-relation QueueUser {
-	.myorg.domain.User playsRole user;
-	SignatureQueue playsRole signatureQueue;
-}
-
-relation QueueSignIntention {
-	SignatureQueue playsRole signatureQueue;
-	SignatureIntention playsRole signatureIntentions {
-		multiplicity *;
-	}
-}
-
-relation SignIntentionMulti {
-	SignatureIntentionMulti playsRole multi;
-	SignatureIntention playsRole signatureIntentions {
-		multiplicity *;
-	}
-}
-
-relation SignatureRepositorySignatureFile {
-	SignatureRepository playsRole repository;
-	SignatureFile playsRole files {
-		multiplicity *;
-	}
-}
-
-relation SignatureFileSignatureIntention {
-	SignatureFile playsRole signatureFile;
-	SignatureIntention playsRole signature;
+	SignatureSystemRoot playsRole signatureSystem;
 }

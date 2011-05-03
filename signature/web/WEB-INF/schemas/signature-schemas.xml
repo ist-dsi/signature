@@ -1,3 +1,4 @@
+<!--  
 <schema name="viewSignature" type="module.signature.domain.SignatureIntention"
 			bundle="SIGNATURE_RESOURCES">
 	<slot name="createdDateTime"  key="label.signature.createdDateTime" />
@@ -5,4 +6,6 @@
 	<slot name="sealed" key="label.signature.sealed" />
 	<slot name="description" key="label.signature.description"  />
 </schema>
+
+-->
 
