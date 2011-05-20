@@ -21,6 +21,7 @@ public class Applet extends JApplet {
 	    Applet.debugln("Running " + System.getProperty("sun.arch.data.model") + "bit version of JVM");
 
 	    MainWindow window = new MainWindow(appletContext, signContentURL, serverURL, redirectURL);
+            this.setContentPane(window);
 	    window.setVisible(true);
 	} catch (Exception ex) {
 	    ex.printStackTrace();

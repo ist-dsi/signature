@@ -5,13 +5,14 @@
  */
 package aeq;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.xml.crypto.dsig.XMLSignature;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -20,10 +21,12 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
 import sun.security.timestamp.HttpTimestamper;
 import sun.security.timestamp.TSRequest;
 import sun.security.timestamp.TSResponse;
@@ -34,28 +37,33 @@ public class XAdESSignatureTimeStamper {
         //System.out.println("XAdES SignatureTimeStamper");
         //System.out.println("2009 Daniel Almeida - daniel.almeida@ist.utl.pt");
 
-        if (args.length != 2) {
-            System.out.println("Usage: XAdESSignatureTimeStamper XAdESSignatureToTimeStamp.xml TimeStampAuthorityURL");
-            return;
-        }
+	System.out.println("StandAlone TimeStamper disabled in this version");
+	return;
 
-        XAdESSignatureTimeStamper xts = new XAdESSignatureTimeStamper();
-        xts.signatureTimeStamp(args[0],args[1]);
+	/*
+	 * if (args.length != 2) { System.out.println(
+	 * "Usage: XAdESSignatureTimeStamper XAdESSignatureToTimeStamp.xml TimeStampAuthorityURL"
+	 * ); return; }
+	 * 
+	 * XAdESSignatureTimeStamper xts = new XAdESSignatureTimeStamper();
+	 * xts.signatureTimeStamp(args[0],args[1]);
+	 */
         
     }
 
-    public void signatureTimeStamp(String fileTimeStampFilename, String tsa) {
+    public byte[] signatureTimeStamp(byte[] signatureContent, String tsa) {
 
         try {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             dbf.setNamespaceAware(true);
-            Document doc = dbf.newDocumentBuilder().parse(new FileInputStream(fileTimeStampFilename));
+	    ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(signatureContent);
+	    Document doc = dbf.newDocumentBuilder().parse(byteArrayInputStream);
 
             // XAdES, append UnsignedProperties
             NodeList nlQualifyingProperties = doc.getElementsByTagName("QualifyingProperties");
             if (nlQualifyingProperties.getLength() == 0) {
                 System.out.println("ERROR");
-                return;
+		return null;
             }
 
             // UnsignedProperties
@@ -104,18 +112,21 @@ public class XAdESSignatureTimeStamper {
                 nlQualifyingProperties.item(0).appendChild(elUnsignedProperties);
             }else{
               System.out.println(tsResponse.getStatusCode()); //ERROR
-              return;
+		return null;
             }
 
             // Transformer
             Transformer trans = TransformerFactory.newInstance().newTransformer();
 
+	    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             trans.transform(
                     new DOMSource(doc),
-                    new StreamResult(new FileOutputStream(fileTimeStampFilename)));
+ new StreamResult(byteArrayOutputStream));
 
             System.out.println("SUCCESS");
             
+	    return byteArrayOutputStream.toByteArray();
+
         }catch (TransformerException ex) {
             System.out.println("ERROR");
             Logger.getLogger(XAdESSignatureTimeStamper.class.getName()).log(Level.SEVERE, null, ex);
@@ -132,5 +143,6 @@ public class XAdESSignatureTimeStamper {
             System.out.println("ERROR");
             Logger.getLogger(XAdESSignatureTimeStamper.class.getName()).log(Level.SEVERE, null, ex);
         }
+	return null;
     }
 }

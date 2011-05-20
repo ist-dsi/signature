@@ -5,10 +5,8 @@
  */
 package aeq;
 
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyException;
@@ -24,10 +22,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-import javax.activation.MimetypesFileTypeMap;
+import javax.activation.MimeType;
 import javax.swing.JOptionPane;
 import javax.xml.crypto.MarshalException;
 import javax.xml.crypto.dom.DOMStructure;
@@ -60,6 +56,7 @@ import org.xml.sax.SAXException;
 
 public class XAdESSigner {
 
+    private static final int BUFFER_SIZE = 1024 * 20;
     private static CartaoCidadaoPKCS11 cartaoCidadaoPKCS11;
     private KeyStore keyStore;
     private Certificado cert;
@@ -68,19 +65,22 @@ public class XAdESSigner {
     // standalone application
     public static void main(String[] args) {
 
-	if (args.length != 5) {
-	    System.out.println("Usage: XAdESSigner FileToSign XMLFilename Role FileDescription Commitment");
-	    return;
-	}
-
-	try {
-
-	    XAdESSigner signer = new XAdESSigner();
-	    signer.sign(args[0], args[1], args[2], args[3], args[4]);
-
-	} catch (Exception ex) {
-	    Logger.getLogger(XAdESSigner.class.getName()).log(Level.SEVERE, null, ex);
-	}
+	System.out.println("This is the altered version of the XAdESSigner and will not run stand-alone ATM");
+	return;
+	/*
+	 * if (args.length != 5) { System.out.println(
+	 * "Usage: XAdESSigner FileToSign XMLFilename Role FileDescription Commitment"
+	 * ); return; }
+	 * 
+	 * try {
+	 * 
+	 * XAdESSigner signer = new XAdESSigner(); signer.sign(args[0], args[1],
+	 * args[2], args[3], args[4]);
+	 * 
+	 * } catch (Exception ex) {
+	 * Logger.getLogger(XAdESSigner.class.getName()).log(Level.SEVERE, null,
+	 * ex); }
+	 */
     }
 
     public XAdESSigner() throws Exception {
@@ -113,16 +113,17 @@ public class XAdESSigner {
     }
 
     // assina um documento
-    public void sign(String signedFileFilename, String xmlFilename, String role, String fileDescription, String commitment)
+    public byte[] sign(byte[] contentToSign, String signatureId, String role, String fileDescription, String commitment,
+	    MimeType mimeType)
 	    throws CertificateEncodingException, SAXException, KeyStoreException, ClassNotFoundException, InstantiationException,
 	    IllegalAccessException, ParserConfigurationException, FileNotFoundException, IOException, NoSuchAlgorithmException,
 	    InvalidAlgorithmParameterException, KeyException, MarshalException, XMLSignatureException,
 	    TransformerConfigurationException, TransformerException {
 
-	String signatureFileFilename = signedFileFilename.concat(".sig.xml");
+//	String signatureFileFilename = signedFileFilename.concat(".sig.xml");
 
-	System.out.println("(*) Ficheiro a assinar: " + signedFileFilename);
-	System.out.println("(*) Ficheiro de assinatura: " + signatureFileFilename);
+//	System.out.println("(*) Ficheiro a assinar: " + signedFileFilename);
+//	System.out.println("(*) Ficheiro de assinatura: " + signatureFileFilename);
 
 	// XML Signature Factory
 	String providerName = System.getProperty("jsr105Provider", "org.jcp.xml.dsig.internal.dom.XMLDSigRI");
@@ -139,15 +140,13 @@ public class XAdESSigner {
 	// InclusÃ£o do ficheiro a assinar
 	Element signedFileObject = doc.createElement("SignedFile");
 	Element signedFileContentObject = doc.createElement("FileContent");
-	signedFileContentObject.setAttribute("Id", xmlFilename);
+	signedFileContentObject.setAttribute("Id", signatureId);
 
 	// ConversÃ£o para Base64
 	System.out.println("(*) A converter ficheiro para Base64 (RFC4648)...");
-	File signedFile = new File(signedFileFilename);
-	FileInputStream signedFileStream = new FileInputStream(signedFile);
-	byte signedFileContent[] = new byte[(int) signedFile.length()];
-	signedFileStream.read(signedFileContent);
-	signedFileContentObject.setTextContent(Base64.encodeBytes(signedFileContent));
+//	File signedFile = new File(signedFileFilename);
+//	FileInputStream signedFileStream = new FileInputStream(signedFile);
+	signedFileContentObject.setTextContent(Base64.encodeBytes(contentToSign));
 	// BREAK LINES AT 76 CHARS object.setTextContent(Base64.encodeBytes(signedFileContent,Base64.DO_BREAK_LINES));      
 	signedFileObject.appendChild(signedFileContentObject);
 	doc.appendChild(signedFileObject);
@@ -221,14 +220,14 @@ public class XAdESSigner {
 	//SignedDataObjectProperties
 	Element elSignedDataObjectProperties = doc.createElement("SignedDataObjectProperties");
 	Element elDataObjectFormat = doc.createElement("DataObjectFormat");
-	elDataObjectFormat.setAttribute("ObjectReference", "#" + xmlFilename);
+	elDataObjectFormat.setAttribute("ObjectReference", "#" + signatureId);
 
 	Element elDescription = doc.createElement("Description");
 	elDescription.setTextContent(fileDescription);
 	elDataObjectFormat.appendChild(elDescription);
 
 	Element elMimeType = doc.createElement("MimeType");
-	elMimeType.setTextContent(new MimetypesFileTypeMap().getContentType(new File(signedFileFilename)));
+	elMimeType.setTextContent(mimeType.toString());
 	elDataObjectFormat.appendChild(elMimeType);
 
 	Element elEncoding = doc.createElement("Encoding");
@@ -290,7 +289,7 @@ public class XAdESSigner {
 	List<Reference> references = new ArrayList<Reference>();
 
 	// Self Document Reference
-	Reference refSelf = factory.newReference("#" + xmlFilename, referenceDigestMethod,
+	Reference refSelf = factory.newReference("#" + signatureId, referenceDigestMethod,
 		Collections.singletonList(canonicalizationMethod), null, null);
 	references.add(refSelf);
 
@@ -319,7 +318,9 @@ public class XAdESSigner {
 	//trans.setOutputProperty(OutputKeys.INDENT,"yes");
 	//trans.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
 
-	trans.transform(new DOMSource(doc), new StreamResult(new FileOutputStream(signatureFileFilename)));
+	ByteArrayOutputStream outputByteStream = new ByteArrayOutputStream();
+	trans.transform(new DOMSource(doc), new StreamResult(outputByteStream));
+	return outputByteStream.toByteArray();
 
     }
 }
