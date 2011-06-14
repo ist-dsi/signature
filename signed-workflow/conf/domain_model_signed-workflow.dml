@@ -1,4 +1,37 @@
-/*package module.signed-workflow.domain;
+package module.signed_workflow.domain;
 
 
-external class .module.signature.ObjectSignatureData; */
+external class .module.signature.domain.data.ObjectSignatureData; 
+
+valueType java.lang.Class as Class {
+        externalizeWith {
+                String getName();
+        }
+        internalizeWith myorg.domain.util.ClassInternalizer.internalize();
+}
+
+
+class WorkflowProcessSignatureData extends .module.signature.domain.data.ObjectSignatureData {
+	String signatureDescription;
+	String signatureIntention;
+	String processId;
+	/*String userId?!?! or person who made it?! */
+}
+
+class ActivitySignatureData extends WorkflowProcessSignatureData {
+	DateTime creationDateTime; /* To allow to help distinguish between old obsolete signature intentions that should be deleted */
+	Class activityClass;
+}
+
+relation WorkflowProcessSignatureDataWorkflowProcess {
+	WorkflowProcessSignatureData playsRole signatureData {
+		multiplicity *;
+	}
+	.module.workflow.domain.WorkflowProcess playsRole workflowProcess;
+}
+
+
+relation ActivitySignatureDataActivityLog {
+	ActivitySignatureData playsRole activitySignatureData;
+	.module.workflow.domain.ActivityLog playsRole activityLog;
+}
