@@ -1,9 +1,12 @@
 package module.signature.domain.data;
 
-public class ObjectSignatureData extends ObjectSignatureData_Base {
+
+
+public abstract class ObjectSignatureData extends ObjectSignatureData_Base {
     
-    public  ObjectSignatureData() {
+    protected ObjectSignatureData() {
         super();
     }
     
+
 }

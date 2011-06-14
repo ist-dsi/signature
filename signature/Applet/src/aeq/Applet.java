@@ -28,16 +28,6 @@ public class Applet extends JApplet {
 	}
     }
 
-    public void main(String[] args) {
-	String signContentURL = "http://joantune-workstation:8080/bennu-signature";
-	String serverURL = "http://joantune-workstation:8080/bennu-signature";
-	String redirectURL = "http://joantune-workstation:8080/bennu-signature";
-
-	AppletContext appletContext = this.getAppletContext();
-	MainWindow window = new MainWindow(appletContext, signContentURL, serverURL, redirectURL);
-	window.setVisible(true);
-
-    }
 
     public static void debugln(String message) {
 	if (debugMode) {
