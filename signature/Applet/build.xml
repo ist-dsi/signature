@@ -1,0 +1,59 @@
+<?xml version="1.0" ?>
+<project default="main">
+	<property name="lib.dir" location="bin" />
+	<property name="bennu.lib.dir" location="../web/public-jars"/>
+
+	<target name="main" depends="clean, compile, jar, sign, deploy" description="Main target">
+		<echo>
+		    Building the .jar file.
+		</echo>
+	</target>
+
+	<target name="compile" description="Compilation target">
+	  <mkdir dir="bin" />
+	  <copydir src="src/resources" dest="bin/aeq/resources" />
+	  <copydir src="libs" dest="bin/libs" />
+	  <javac srcdir="src" destdir="bin" debug="true">
+	      <classpath>
+		    <fileset dir="src" includes="*.jar" />
+		    <fileset dir="libs" includes="*.jar" />
+	      </classpath>
+	  </javac>
+	</target>
+
+	<target name="jar" depends="compile">
+		<delete file="dist/aeq.jar"/>
+		<delete file="bin/MANIFEST.MF"/>
+                <mkdir dir="dist" />
+		<manifest file="bin/MANIFEST.MF">
+			<attribute name="Built-By" value="${user.name}"/>
+			<!--<attribute name="Main-Class" value="aeq.Applet"/>-->
+		</manifest>
+		<jar destfile="dist/aeq.jar"
+		     basedir="bin"
+		     includes="**/*.class,*.png,*.conf"
+		     manifest="bin/MANIFEST.MF"
+		     >
+			<zipfileset dir="src/resources/conf"
+				includes="*.conf" prefix="resources/conf"/>
+		</jar>
+	</target>
+
+  <target name="sign" description="Sign applet">
+    <signjar jar="dist/aeq.jar" alias="joantune-dev-key" storepass="testes"/>
+  </target>
+	
+  <target name="deploy" description="Deploy target">
+    <exec executable="scp">
+      <arg value="dist/aeq.jar"/>
+      <arg value="gpc-demo.dyndns-work.com:/home/joantune/CIIST-Wspace/bennu/modules/signature/web/public-jars/aeq30.jar"/>
+    </exec>
+    <copy file="dist/aeq.jar" tofile="../web/public-jars/aeq30.jar"/>
+  </target>
+  
+  <target name="clean" description="clean up" >
+    <delete dir="bin"/>
+    <delete dir="dist/*.jar"/>
+  </target>
+ 	
+</project>

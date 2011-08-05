@@ -5,6 +5,9 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
@@ -17,12 +20,14 @@ import java.util.logging.Logger;
 
 import javax.activation.MimeType;
 import javax.swing.JApplet;
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import netscape.javascript.JSObject;
 
+import org.bouncycastle.asn1.DERGeneralizedTime;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xhtmlrenderer.resource.XMLResource;
@@ -30,7 +35,6 @@ import org.xhtmlrenderer.simple.FSScrollPane;
 import org.xhtmlrenderer.swing.ScalableXHTMLPanel;
 import org.xhtmlrenderer.util.XRRuntimeException;
 
-import sun.misc.BASE64Decoder;
 
 /*
  * Created on Apr 19, 2010, 6:23:40 PM
@@ -61,6 +65,8 @@ public class MainWindow extends JApplet {
     private String xhtmlContentString;
 
     private String xmlContentString;
+
+    private final JFileChooser fileChooser = new JFileChooser();
 
     private byte[] signedContent;
     //    private File signatureFile;
@@ -211,10 +217,9 @@ public class MainWindow extends JApplet {
 
 		ableToUseJavaScript = true;
 
-		BASE64Decoder base64Decoder = new BASE64Decoder();
-		byte[] byteContent = base64Decoder.decodeBuffer(content64BaseEncoded);
+		byte[] byteContent = Base64.decode(content64BaseEncoded);
 		contentString = new String(byteContent, Charset.forName("UTF-8"));
-		debugln("Got the content through JS call, result: " + contentString);
+		//		debugln("Got the content through JS call, result: " + contentString);
 	    }
 	} catch (Exception ex) {
 	    ableToUseJavaScript = false;
@@ -241,7 +246,7 @@ public class MainWindow extends JApplet {
 
 		//	    contentFileWriter.close();
 		in.close();
-		debugln("Got the content through HTTP request, couldn't make it through JS, result: " + contentString);
+		//		debugln("Got the content through HTTP request, couldn't make it through JS, result: " + contentString);
 
 	    }
 	    //let's extract the XML from the content
@@ -281,16 +286,15 @@ public class MainWindow extends JApplet {
 	}
     }
 
-    protected void signAndCommit() {
+    protected void sign() {
 
 	if (ableToUseJavaScript) {
 
 	    try {
 		performSign();
-		commitSign();
 
-		JOptionPane.showMessageDialog(this, "Javascript envocado, o formulario ja deve ter os dados certos", "Teste",
-			JOptionPane.INFORMATION_MESSAGE);
+		//		JOptionPane.showMessageDialog(this, "Javascript envocado, o formulario ja deve ter os dados certos", "Teste",
+		//			JOptionPane.INFORMATION_MESSAGE);
 	    } catch (Exception ex) {
 
 		JOptionPane.showMessageDialog(this,
@@ -336,7 +340,7 @@ public class MainWindow extends JApplet {
 	    }
 
 	    //let's make sure the signer understands what and why he is signing this document
-	    String message = "Ao assinar este documento, estara a: \"" + intentionString
+	    String message = "Assinar este documento corresponde a: \"" + intentionString
 		    + "\" tem a certeza que pretende continuar?";
 	    int response = JOptionPane.showConfirmDialog(this, message, "Assinatura", JOptionPane.YES_NO_OPTION,
 		    JOptionPane.QUESTION_MESSAGE);
@@ -346,22 +350,30 @@ public class MainWindow extends JApplet {
 	    //	    BufferedWriter signatureFileWriter = new BufferedWriter(new FileWriter(signatureFile));
 
 	    // do the signature
-	    signedContent = signer.sign(contentString.getBytes(), signatureId, roleString, descriptionString, intentionString,
+	    signedContent = signer.sign(contentString.getBytes(Charset.forName("UTF-8")), signatureId, roleString,
+		    descriptionString, intentionString,
 		    new MimeType("application", "signature"));
+
+
 
 	    // add the timestamp
 	    XAdESSignatureTimeStamper ts = new XAdESSignatureTimeStamper();
-	    signedContent = ts.signatureTimeStamp(signedContent, tsaURL);
+	    Object[] timeStamperReturn = ts.signatureTimeStamp(signedContent, tsaURL);
+	    if (timeStamperReturn != null) {
+		signedContent = (byte[]) timeStamperReturn[0];
+		DERGeneralizedTime generalizedTime = (DERGeneralizedTime) timeStamperReturn[1];
+		timestampMarkerTextField.setText(generalizedTime.getDate().toLocaleString());
+	    }
+	    else {
+		JOptionPane.showMessageDialog(this, "Falhou a criação da assinatura", "Erro", JOptionPane.ERROR_MESSAGE);
+		activateSign();
+		return;
+	    }
 
-	    if (signedContent != null) {
 		JOptionPane.showMessageDialog(this, "Assinatura realizada com sucesso", "Sucesso",
 			JOptionPane.INFORMATION_MESSAGE);
 
 		hasSigned = true;
-	    } else {
-		JOptionPane.showMessageDialog(this, "Falhou a criação da assinatura", "Erro", JOptionPane.ERROR_MESSAGE);
-		activateSign();
-	    }
 
 	} catch (KeyStoreException ex) {
 	    JOptionPane.showMessageDialog(this, "Erro a aceder ao Cartão de Cidadão", "Erro", JOptionPane.ERROR_MESSAGE);
@@ -371,6 +383,10 @@ public class MainWindow extends JApplet {
 	    JOptionPane.showMessageDialog(this, ex, "Erro", JOptionPane.ERROR_MESSAGE);
 	} finally {
 	    activateSign();
+	    if (hasSigned) {
+		submitButton.setEnabled(true);
+		saveSignatureButton.setEnabled(true);
+	    }
 	}
     }
 
@@ -385,7 +401,8 @@ public class MainWindow extends JApplet {
 
 	//let's put it in the textArea
 
-	window.eval("$(\"textarea\").get(0).value = \"" + encodedSignature + "\"");
+	window.eval("writeContentToInput(\"" + encodedSignature + "\")");
+	window.eval("submitForm()");
 
 	//	try {
 	//	    ClientHttpRequest client = new ClientHttpRequest(serverURL);
@@ -457,187 +474,236 @@ public class MainWindow extends JApplet {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-	jPanel2 = new javax.swing.JPanel();
-	jPanel3 = new javax.swing.JPanel();
-	signButton = new javax.swing.JButton();
-	jPanel5 = new javax.swing.JPanel();
-	jLabel2 = new javax.swing.JLabel();
-	identityField = new javax.swing.JTextField();
-	jLabel3 = new javax.swing.JLabel();
-	identityEmissionField = new javax.swing.JTextField();
-	jLabel4 = new javax.swing.JLabel();
-	identityValidadeField = new javax.swing.JTextField();
-	readCardButton = new javax.swing.JButton();
+        jPanel2 = new javax.swing.JPanel();
+        jPanel5 = new javax.swing.JPanel();
+        jLabel2 = new javax.swing.JLabel();
+        identityField = new javax.swing.JTextField();
+        jLabel3 = new javax.swing.JLabel();
+        identityEmissionField = new javax.swing.JTextField();
+        jLabel4 = new javax.swing.JLabel();
+        identityValidadeField = new javax.swing.JTextField();
+        readCardButton = new javax.swing.JButton();
+        jPanel3 = new javax.swing.JPanel();
+        signButton = new javax.swing.JButton();
+        submitButton = new javax.swing.JButton();
+        saveSignatureButton = new javax.swing.JButton();
+        timestampLabel = new javax.swing.JLabel();
+        timestampMarkerTextField = new javax.swing.JTextField();
 
-	setPreferredSize(new java.awt.Dimension(910, 800));
+        setPreferredSize(new java.awt.Dimension(910, 800));
 
 	jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("Conteúdo a Assinar"));
+        jPanel2.setMinimumSize(new java.awt.Dimension(700, 500));
+        jPanel2.setSize(new java.awt.Dimension(890, 714));
 
-	javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-	jPanel2.setLayout(jPanel2Layout);
-	jPanel2Layout.setHorizontalGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING).addGap(0,
-		1061, Short.MAX_VALUE));
-	jPanel2Layout.setVerticalGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING).addGap(0,
-		614, Short.MAX_VALUE));
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 898, Short.MAX_VALUE)
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 598, Short.MAX_VALUE)
+        );
 
-	jPanel3.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        jLabel2.setText("Identidade:");
 
-	signButton.setText("Assinar");
-	signButton.setEnabled(false);
-	signButton.addMouseListener(new java.awt.event.MouseAdapter() {
-	    @Override
-	    public void mouseClicked(java.awt.event.MouseEvent evt) {
-		signButtonMouseClicked(evt);
-	    }
-	});
-	signButton.addActionListener(new java.awt.event.ActionListener() {
-	    @Override
+        identityField.setEditable(false);
+        identityField.setFont(new java.awt.Font("DejaVu Sans", 0, 10));
+        identityField.addActionListener(new java.awt.event.ActionListener() {
+            @Override
 	    public void actionPerformed(java.awt.event.ActionEvent evt) {
-		signButtonActionPerformed(evt);
-	    }
-	});
+                identityFieldActionPerformed(evt);
+            }
+        });
 
-	javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
-	jPanel3.setLayout(jPanel3Layout);
-	jPanel3Layout.setHorizontalGroup(jPanel3Layout
-		.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-		.addGap(0, 1069, Short.MAX_VALUE)
-		.addGroup(
-			jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING).addGroup(
-				jPanel3Layout.createSequentialGroup().addGap(367, 367, 367)
-					.addComponent(signButton, javax.swing.GroupLayout.DEFAULT_SIZE, 335, Short.MAX_VALUE)
-					.addGap(367, 367, 367))));
-	jPanel3Layout.setVerticalGroup(jPanel3Layout
-		.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-		.addGap(0, 69, Short.MAX_VALUE)
-		.addGroup(
-			jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING).addGroup(
-				jPanel3Layout.createSequentialGroup().addContainerGap()
-					.addComponent(signButton, javax.swing.GroupLayout.DEFAULT_SIZE, 51, Short.MAX_VALUE)
-					.addGap(1, 1, 1))));
+        jLabel3.setText("Emissor:");
 
-	jLabel2.setText("Identidade:");
-
-	identityField.setEditable(false);
-	identityField.setFont(new java.awt.Font("DejaVu Sans", 0, 10)); // NOI18N
-	identityField.addActionListener(new java.awt.event.ActionListener() {
-	    @Override
+        identityEmissionField.setEditable(false);
+        identityEmissionField.setFont(new java.awt.Font("DejaVu Sans", 0, 10));
+        identityEmissionField.addActionListener(new java.awt.event.ActionListener() {
+            @Override
 	    public void actionPerformed(java.awt.event.ActionEvent evt) {
-		identityFieldActionPerformed(evt);
-	    }
-	});
+                identityEmissionFieldActionPerformed(evt);
+            }
+        });
 
-	jLabel3.setText("Emissor:");
+        jLabel4.setText("Validade:");
 
-	identityEmissionField.setEditable(false);
-	identityEmissionField.setFont(new java.awt.Font("DejaVu Sans", 0, 10));
-	identityEmissionField.addActionListener(new java.awt.event.ActionListener() {
-	    @Override
+        identityValidadeField.setEditable(false);
+        identityValidadeField.setFont(new java.awt.Font("DejaVu Sans", 0, 10));
+        identityValidadeField.addActionListener(new java.awt.event.ActionListener() {
+            @Override
 	    public void actionPerformed(java.awt.event.ActionEvent evt) {
-		identityEmissionFieldActionPerformed(evt);
-	    }
-	});
-
-	jLabel4.setText("Validade:");
-
-	identityValidadeField.setEditable(false);
-	identityValidadeField.setFont(new java.awt.Font("DejaVu Sans", 0, 10));
-	identityValidadeField.addActionListener(new java.awt.event.ActionListener() {
-	    @Override
-	    public void actionPerformed(java.awt.event.ActionEvent evt) {
-		identityValidadeFieldActionPerformed(evt);
-	    }
-	});
+                identityValidadeFieldActionPerformed(evt);
+            }
+        });
 
 	readCardButton.setText("Ler Cartão");
-	readCardButton.addMouseListener(new java.awt.event.MouseAdapter() {
-	    @Override
+        readCardButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
 	    public void mouseClicked(java.awt.event.MouseEvent evt) {
-		readCardButtonMouseClicked(evt);
-	    }
-	});
-	readCardButton.addActionListener(new java.awt.event.ActionListener() {
-	    @Override
+                readCardButtonMouseClicked(evt);
+            }
+        });
+        readCardButton.addActionListener(new java.awt.event.ActionListener() {
+            @Override
 	    public void actionPerformed(java.awt.event.ActionEvent evt) {
-		readCardButtonActionPerformed(evt);
-	    }
-	});
+                readCardButtonActionPerformed(evt);
+            }
+        });
 
-	javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
-	jPanel5.setLayout(jPanel5Layout);
-	jPanel5Layout.setHorizontalGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING).addGroup(
-		jPanel5Layout
-			.createSequentialGroup()
-			.addGap(20, 20, 20)
-			.addGroup(
-				jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-					.addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, 350, Short.MAX_VALUE)
-					.addComponent(identityField, javax.swing.GroupLayout.DEFAULT_SIZE, 350, Short.MAX_VALUE))
-			.addGap(18, 18, 18)
-			.addGroup(
-				jPanel5Layout
-					.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-					.addComponent(jLabel4)
-					.addComponent(identityValidadeField, javax.swing.GroupLayout.PREFERRED_SIZE, 191,
-						javax.swing.GroupLayout.PREFERRED_SIZE))
-			.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-			.addGroup(
-				jPanel5Layout
-					.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-					.addGroup(
-						jPanel5Layout
-							.createSequentialGroup()
-							.addComponent(identityEmissionField,
-								javax.swing.GroupLayout.PREFERRED_SIZE, 355,
-								javax.swing.GroupLayout.PREFERRED_SIZE)
-							.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-							.addComponent(readCardButton, javax.swing.GroupLayout.PREFERRED_SIZE,
-								107, javax.swing.GroupLayout.PREFERRED_SIZE))
-					.addComponent(jLabel3)).addContainerGap()));
-	jPanel5Layout.setVerticalGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING).addGroup(
-		jPanel5Layout
-			.createSequentialGroup()
-			.addGap(9, 9, 9)
-			.addGroup(
-				jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-					.addComponent(jLabel2).addComponent(jLabel4).addComponent(jLabel3))
-			.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-			.addGroup(
-				jPanel5Layout
-					.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
-					.addComponent(identityField, javax.swing.GroupLayout.PREFERRED_SIZE,
-						javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-					.addComponent(identityValidadeField, javax.swing.GroupLayout.PREFERRED_SIZE,
-						javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-					.addComponent(identityEmissionField, javax.swing.GroupLayout.PREFERRED_SIZE,
-						javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-					.addComponent(readCardButton, javax.swing.GroupLayout.PREFERRED_SIZE, 36,
-						javax.swing.GroupLayout.PREFERRED_SIZE))
-			.addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)));
+        javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
+        jPanel5.setLayout(jPanel5Layout);
+        jPanel5Layout.setHorizontalGroup(
+            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel5Layout.createSequentialGroup()
+                .addGap(20, 20, 20)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, 187, Short.MAX_VALUE)
+                    .addComponent(identityField, javax.swing.GroupLayout.DEFAULT_SIZE, 187, Short.MAX_VALUE))
+                .addGap(18, 18, 18)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel4)
+                    .addComponent(identityValidadeField, javax.swing.GroupLayout.PREFERRED_SIZE, 191, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel5Layout.createSequentialGroup()
+                        .addComponent(identityEmissionField, javax.swing.GroupLayout.PREFERRED_SIZE, 355, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(readCardButton, javax.swing.GroupLayout.PREFERRED_SIZE, 107, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jLabel3))
+                .addContainerGap())
+        );
+        jPanel5Layout.setVerticalGroup(
+            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel5Layout.createSequentialGroup()
+                .addGap(9, 9, 9)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel2)
+                    .addComponent(jLabel4)
+                    .addComponent(jLabel3))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
+                    .addComponent(identityField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(identityValidadeField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(identityEmissionField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(readCardButton, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
 
-	javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-	getContentPane().setLayout(layout);
-	layout.setHorizontalGroup(layout
-		.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-		.addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE,
-			Short.MAX_VALUE)
-		.addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE,
-			Short.MAX_VALUE)
-		.addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE,
-			Short.MAX_VALUE));
-	layout.setVerticalGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING).addGroup(
-		javax.swing.GroupLayout.Alignment.TRAILING,
-		layout.createSequentialGroup()
-			.addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE,
-				javax.swing.GroupLayout.PREFERRED_SIZE)
-			.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-			.addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE,
-				Short.MAX_VALUE)
-			.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-			.addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE,
-				javax.swing.GroupLayout.PREFERRED_SIZE)));
+        jPanel3.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
-	jPanel3.getAccessibleContext().setAccessibleName("PainelAssinar");
+        signButton.setText("Assinar");
+        signButton.setEnabled(false);
+        signButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+	    public void mouseClicked(java.awt.event.MouseEvent evt) {
+                signButtonMouseClicked(evt);
+            }
+        });
+        signButton.addActionListener(new java.awt.event.ActionListener() {
+            @Override
+	    public void actionPerformed(java.awt.event.ActionEvent evt) {
+                signButtonActionPerformed(evt);
+            }
+        });
+
+        submitButton.setText("Submeter assinatura");
+        submitButton.setEnabled(false);
+        submitButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+	    public void mouseClicked(java.awt.event.MouseEvent evt) {
+                submitButtonMouseClicked(evt);
+            }
+        });
+        submitButton.addActionListener(new java.awt.event.ActionListener() {
+            @Override
+	    public void actionPerformed(java.awt.event.ActionEvent evt) {
+                submitButtonActionPerformed(evt);
+            }
+        });
+
+        saveSignatureButton.setText("Guardar assinatura");
+        saveSignatureButton.setEnabled(false);
+        saveSignatureButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+	    public void mouseClicked(java.awt.event.MouseEvent evt) {
+                saveSignatureButtonMouseClicked(evt);
+            }
+        });
+        saveSignatureButton.addActionListener(new java.awt.event.ActionListener() {
+            @Override
+	    public void actionPerformed(java.awt.event.ActionEvent evt) {
+                saveSignatureButtonActionPerformed(evt);
+            }
+        });
+
+        timestampLabel.setText("Carimbo temporal:");
+        timestampLabel.setName("timestampLabel"); // NOI18N
+
+        timestampMarkerTextField.setText("Inexistente");
+        timestampMarkerTextField.setEnabled(false);
+        timestampMarkerTextField.addActionListener(new java.awt.event.ActionListener() {
+            @Override
+	    public void actionPerformed(java.awt.event.ActionEvent evt) {
+                timestampMarkerTextFieldActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
+        jPanel3.setLayout(jPanel3Layout);
+        jPanel3Layout.setHorizontalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addComponent(timestampLabel)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addGap(103, 103, 103)
+                        .addComponent(saveSignatureButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(signButton, javax.swing.GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(submitButton, javax.swing.GroupLayout.DEFAULT_SIZE, 172, Short.MAX_VALUE)
+                        .addGap(210, 210, 210))
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(timestampMarkerTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 166, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap())))
+        );
+        jPanel3Layout.setVerticalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(signButton, javax.swing.GroupLayout.DEFAULT_SIZE, 51, Short.MAX_VALUE)
+                    .addComponent(saveSignatureButton, javax.swing.GroupLayout.DEFAULT_SIZE, 51, Short.MAX_VALUE)
+                    .addComponent(submitButton, javax.swing.GroupLayout.DEFAULT_SIZE, 51, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 18, Short.MAX_VALUE)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(timestampMarkerTextField, 0, 0, Short.MAX_VALUE)
+                    .addComponent(timestampLabel)))
+        );
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jPanel2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+        );
+
+        jPanel3.getAccessibleContext().setAccessibleName("PainelAssinar");
     }// </editor-fold>//GEN-END:initComponents
 
     private void identityFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_identityFieldActionPerformed
@@ -653,7 +719,7 @@ public class MainWindow extends JApplet {
     }//GEN-LAST:event_identityValidadeFieldActionPerformed
 
     private void signButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_signButtonActionPerformed
-	signAndCommit();
+	sign();
     }//GEN-LAST:event_signButtonActionPerformed
 
     private void readCardButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_readCardButtonActionPerformed
@@ -667,6 +733,55 @@ public class MainWindow extends JApplet {
 	initSigner(true);
     }//GEN-LAST:event_readCardButtonMouseClicked
 
+    private void submitButtonMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_submitButtonMouseClicked
+    }//GEN-LAST:event_submitButtonMouseClicked
+
+    private void submitButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_submitButtonActionPerformed
+	commitSign();
+    }//GEN-LAST:event_submitButtonActionPerformed
+
+    private void saveSignatureButtonMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_saveSignatureButtonMouseClicked
+	// TODO add your handling code here:
+    }//GEN-LAST:event_saveSignatureButtonMouseClicked
+
+    private void saveSignatureButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveSignatureButtonActionPerformed
+	fileChooser.setSelectedFile(new File(signatureId + ".sig"));
+	int returnVal = fileChooser.showSaveDialog(this);
+	if (returnVal == JFileChooser.APPROVE_OPTION) {
+	    File file = fileChooser.getSelectedFile();
+	    debugln("Saving: " + file.getName() + ".");
+
+	    FileOutputStream fos = null;
+	    try {
+		fos = new FileOutputStream(file);
+		fos.write(signedContent);
+		    fos.flush();
+		    fos.close();
+	    } catch (FileNotFoundException e) {
+		JOptionPane.showMessageDialog(this, "Não foi possivel guardar o ficheiro. Causa: " + e.getMessage(),
+			"Erro ao guardar", JOptionPane.ERROR_MESSAGE);
+		e.printStackTrace();
+	    } catch (IOException e) {
+		JOptionPane.showMessageDialog(this, "Não foi possivel guardar o ficheiro. Causa: " + e.getMessage(),
+			"Erro ao guardar", JOptionPane.ERROR_MESSAGE);
+		e.printStackTrace();
+		return;
+
+	    }
+
+	    JOptionPane.showMessageDialog(this, "Ficheiro guardado! (não se esqueça de submeter a assinatura para o sistema)",
+		    "Ficheiro gravado", JOptionPane.INFORMATION_MESSAGE);
+
+	} else {
+	    debugln("Save command cancelled by user.");
+	}
+
+    }//GEN-LAST:event_saveSignatureButtonActionPerformed
+
+    private void timestampMarkerTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_timestampMarkerTextFieldActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_timestampMarkerTextFieldActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextField identityEmissionField;
     private javax.swing.JTextField identityField;
@@ -678,8 +793,11 @@ public class MainWindow extends JApplet {
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel5;
     private javax.swing.JButton readCardButton;
+    private javax.swing.JButton saveSignatureButton;
     private javax.swing.JButton signButton;
-
+    private javax.swing.JButton submitButton;
+    private javax.swing.JLabel timestampLabel;
+    private javax.swing.JTextField timestampMarkerTextField;
     // End of variables declaration//GEN-END:variables
 
     private void setStub(Object object) {

@@ -5,5 +5,7 @@
 	<classpathentry kind="lib" path="libs/core-renderer.jar"/>
 	<classpathentry kind="lib" path="libs/xmlsec-1.4.3.jar"/>
 	<classpathentry kind="lib" path="libs/plugin.jar"/>
+	<classpathentry kind="lib" path="libs/icu4j-4_8.jar"/>
+	<classpathentry kind="lib" path="libs/bcprov-jdk16-146.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

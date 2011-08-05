@@ -54,6 +54,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
+import sun.misc.BASE64Encoder;
+
 public class XAdESSigner {
 
     private static final int BUFFER_SIZE = 1024 * 20;
@@ -146,7 +148,8 @@ public class XAdESSigner {
 	System.out.println("(*) A converter ficheiro para Base64 (RFC4648)...");
 //	File signedFile = new File(signedFileFilename);
 //	FileInputStream signedFileStream = new FileInputStream(signedFile);
-	signedFileContentObject.setTextContent(Base64.encodeBytes(contentToSign));
+	BASE64Encoder encoder = new BASE64Encoder();
+	signedFileContentObject.setTextContent(encoder.encode(contentToSign));
 	// BREAK LINES AT 76 CHARS object.setTextContent(Base64.encodeBytes(signedFileContent,Base64.DO_BREAK_LINES));      
 	signedFileObject.appendChild(signedFileContentObject);
 	doc.appendChild(signedFileObject);
@@ -187,7 +190,7 @@ public class XAdESSigner {
 	//MessageDigest sha1 = MessageDigest.getInstance("SHA1");
 	//elDigestValue.setTextContent(Base64.encodeBytes(sha1.digest(cert.getX509Cert().getEncoded())));
 	MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
-	elDigestValue.setTextContent(Base64.encodeBytes(sha256.digest(cert.getX509Cert().getEncoded())));
+	elDigestValue.setTextContent(encoder.encode(sha256.digest(cert.getX509Cert().getEncoded())));
 
 	elCertDigest.appendChild(elDigestValue);
 

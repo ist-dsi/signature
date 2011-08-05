@@ -22,11 +22,15 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.bouncycastle.asn1.ASN1Object;
+import org.bouncycastle.asn1.DERGeneralizedTime;
+import org.bouncycastle.asn1.tsp.TSTInfo;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import sun.misc.BASE64Encoder;
 import sun.security.timestamp.HttpTimestamper;
 import sun.security.timestamp.TSRequest;
 import sun.security.timestamp.TSResponse;
@@ -34,8 +38,8 @@ import sun.security.timestamp.TSResponse;
 public class XAdESSignatureTimeStamper {
 
     public static void main(String args[]) {
-        //System.out.println("XAdES SignatureTimeStamper");
-        //System.out.println("2009 Daniel Almeida - daniel.almeida@ist.utl.pt");
+	//System.out.println("XAdES SignatureTimeStamper");
+	//System.out.println("2009 Daniel Almeida - daniel.almeida@ist.utl.pt");
 
 	System.out.println("StandAlone TimeStamper disabled in this version");
 	return;
@@ -48,11 +52,22 @@ public class XAdESSignatureTimeStamper {
 	 * XAdESSignatureTimeStamper xts = new XAdESSignatureTimeStamper();
 	 * xts.signatureTimeStamp(args[0],args[1]);
 	 */
-        
+
     }
 
-    public byte[] signatureTimeStamp(byte[] signatureContent, String tsa) {
+    /**
+     * 
+     * @param signatureContent
+     *            the content to be timestamped
+     * @param tsa
+     *            the TSA to use URL
+     * @return an object array where the first position is the content and the
+     *         second the {@link DERGeneralizedTime} representing the time which
+     *         was provided by the TSA
+     */
+    public Object[] signatureTimeStamp(byte[] signatureContent, String tsa) {
 
+	Object[] toReturn = new Object[2];
         try {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             dbf.setNamespaceAware(true);
@@ -99,12 +114,16 @@ public class XAdESSignatureTimeStamper {
 
             if(tsResponse.getStatusCode() == TSResponse.GRANTED){
 
+        	TSTInfo tstInfo = TSTInfo.getInstance(ASN1Object.fromByteArray(tsResponse.getToken().getContentInfo().getContentBytes()));
+        	toReturn[1] = tstInfo.getGenTime();
                 // SignatureTimeStamp
                 Element elSignatureTimeStamp = doc.createElement("SignatureTimeStamp");
                
                 //EncapsulatedTimeStamp
                 Element elEncapsulatedTimeStamp = doc.createElement("EncapsulatedTimeStamp");
-                elEncapsulatedTimeStamp.setTextContent(Base64.encodeBytes(tsResponse.getEncodedToken()));
+		BASE64Encoder encoder = new BASE64Encoder();
+
+		elEncapsulatedTimeStamp.setTextContent(encoder.encode(tsResponse.getEncodedToken()));
                 elSignatureTimeStamp.appendChild(elEncapsulatedTimeStamp);
                 
                 elUnsignedSignatureProperties.appendChild(elSignatureTimeStamp);
@@ -125,7 +144,9 @@ public class XAdESSignatureTimeStamper {
 
             System.out.println("SUCCESS");
             
-	    return byteArrayOutputStream.toByteArray();
+            toReturn[0] = byteArrayOutputStream.toByteArray();
+            
+	    return toReturn;
 
         }catch (TransformerException ex) {
             System.out.println("ERROR");
