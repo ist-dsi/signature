@@ -1,2 +1,2 @@
 name=signature
-depends=core,fileManagement
+depends=core,fileSupport,lucene
