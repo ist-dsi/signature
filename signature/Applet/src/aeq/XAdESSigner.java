@@ -298,7 +298,7 @@ public class XAdESSigner {
 
 	// XAdES Reference
 	Reference refSignedProperties = factory.newReference("#idSignedProperties", referenceDigestMethod,
-		Collections.singletonList(canonicalizationMethod), null, null);
+		Collections.singletonList(canonicalizationMethod), "http://uri.etsi.org/01903#SignedProperties", null);
 	references.add(refSignedProperties);
 
 	System.out.println("(*) A criar assinatura...");

@@ -4,17 +4,14 @@ import java.applet.AppletContext;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.StringReader;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.nio.charset.Charset;
 import java.security.KeyStoreException;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -27,9 +24,10 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import netscape.javascript.JSObject;
 
-import org.bouncycastle.asn1.DERGeneralizedTime;
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xhtmlrenderer.resource.XMLResource;
 import org.xhtmlrenderer.simple.FSScrollPane;
 import org.xhtmlrenderer.swing.ScalableXHTMLPanel;
@@ -43,11 +41,6 @@ import org.xhtmlrenderer.util.XRRuntimeException;
  */
 public class MainWindow extends JApplet {
 
-    public final static String BEGIN_XML_FILE = "------- XML START -------\n";
-    public final static String END_XML_FILE = "------- XML END -------\n";
-    public final static String BEGIN_XHTML_FILE = "------- XHTML START -------\n";
-    public final static String END_XHTML_FILE = "------- XHTML END -------\n";
-
     private XAdESSigner signer;
     private final String tsaURL = "http://tsp.iaik.tugraz.at/tsp/TspRequest";
 
@@ -56,14 +49,13 @@ public class MainWindow extends JApplet {
 
     private boolean ableToUseJavaScript = false;
 
-    private final String signContentURL;
-    final private String serverURL;
+    //    private final String signContentURL;
+    //    final private String serverURL;
     final private String redirectURL;
 
     //    private File contentFile;
     private String contentString;
     private String xhtmlContentString;
-
     private String xmlContentString;
 
     private final JFileChooser fileChooser = new JFileChooser();
@@ -84,11 +76,10 @@ public class MainWindow extends JApplet {
     private String roleString;
     private JSObject window;
 
-    public MainWindow(AppletContext appContext, String signContentURL, String serverURL, String redirectURL) {
+    public MainWindow(AppletContext appContext, String redirectURL) {
 	this.appContext = appContext;
 
-	this.signContentURL = signContentURL;
-	this.serverURL = serverURL;
+	//	this.serverURL = serverURL;
 	this.redirectURL = redirectURL;
 
 	init();
@@ -146,16 +137,13 @@ public class MainWindow extends JApplet {
 	    System.out.println("Loading document..");
 	    //	    ByteArrayInputStream inputStream = new ByteArrayInputStream(contentFileString.getBytes());
 	    DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-	    //let's remove the content which isn't XHTML:
-	    int startIndexOfXHTMLContent = contentString.indexOf(BEGIN_XHTML_FILE) + BEGIN_XHTML_FILE.length();
-	    int endIndexOfXHTMLContent = contentString.indexOf(END_XHTML_FILE);
-	    xhtmlContentString = contentString.substring(startIndexOfXHTMLContent, endIndexOfXHTMLContent);
+	    //by default the contentString is exactly the xhtmlContentString! in the future, this might change
+	    xhtmlContentString = contentString;
 
 	    Document document = XMLResource.load(new StringReader(xhtmlContentString)).getDocument();
 	    System.out.println("Parsed, now loading document..");
 
 	    try {
-		System.out.println("Loading Page: " + signContentURL);
 		view.setCursor(new Cursor(Cursor.WAIT_CURSOR));
 		view.setDocument(document);
 
@@ -230,55 +218,91 @@ public class MainWindow extends JApplet {
 
 	    if (!ableToUseJavaScript) {
 		//TODO make the authentication, etc. 
+		//TODO implement this!
+		throw new Error("Erro de sistema! Impossivel fazer chamada de JavaScript, por favor contacte o suporte");
 
-		BufferedReader in = new BufferedReader(new InputStreamReader(new URL(signContentURL).openStream()));
+		//		BufferedReader in = new BufferedReader(new InputStreamReader(new URL(signContentURL).openStream()));
 
 		//	    BufferedWriter contentFileWriter = new BufferedWriter(new FileWriter(contentFile));
 
-		StringBuilder sb = new StringBuilder();
-		String inputLine;
-		while ((inputLine = in.readLine()) != null) {
-		    sb.append(inputLine + "\n");
+		//		StringBuilder sb = new StringBuilder();
+		//		String inputLine;
+		//		while ((inputLine = in.readLine()) != null) {
+		//		    sb.append(inputLine + "\n");
 		    //		contentFileWriter.write(inputLine + "\n");
-		}
+		//		}
 
-		contentString = sb.toString();
+		//		contentString = sb.toString();
 
 		//	    contentFileWriter.close();
-		in.close();
+		//		in.close();
 		//		debugln("Got the content through HTTP request, couldn't make it through JS, result: " + contentString);
 
 	    }
-	    //let's extract the XML from the content
-	    //let's remove the content which isn't pure XML:
-	    int startIndexOfXMLContent = contentString.indexOf(BEGIN_XML_FILE) + BEGIN_XML_FILE.length();
-	    int endIndexOfXMLContent = contentString.indexOf(END_XML_FILE);
-	    xmlContentString = contentString.substring(startIndexOfXMLContent, endIndexOfXMLContent);
+	    //let's get the original XML content to get the: signatureId; intentionString; descriptionString; roleString;
+	    //we can do that, because we will always have the first span of the document as a non displayed one with the start
+	    //of the id with the name AllContent_
 
 	    //now let's interpret it
-	    Document document = XMLResource.load(new StringReader(xmlContentString)).getDocument();
-	    Element documentElement = document.getDocumentElement();
-	    debugln("Document element: " + documentElement.getLocalName());
-	    signatureId = documentElement.getAttribute("signatureId");
-	    intentionString = documentElement.getAttribute("intention");
-	    descriptionString = documentElement.getAttribute("description");
-	    roleString = documentElement.getAttribute("roleOfSigner");
+	    this.xhtmlContentString = this.contentString;
+	    Document document = XMLResource.load(new StringReader(xhtmlContentString)).getDocument();
+	    NodeList allSpans = document.getElementsByTagName("span");
+				Node nodeWithNeededElements =  null;
+	    
+	    for (int i=0;i<allSpans.getLength();i++)
+	    {
+		//iterating through all spans and getting the first one whose id starts with AllContent
+		Node nodeBeingInspected = allSpans.item(i);
+		if (nodeBeingInspected.getAttributes() != null)
+		{
+		    Node id = nodeBeingInspected.getAttributes().getNamedItem("id");
+		    if (id != null)
+		    {
+			if(id.getNodeValue() == null || id.getNodeValue().isEmpty())
+			{
+			    continue;
+			}
+			else {
+			    //let's inspect it and see if we have what we came for
+			    if (id.getNodeValue().startsWith("AllContent"))
+			    {
+				debugln("Supposedly found the superNode! content: " + nodeBeingInspected.getTextContent());
+				//this is it, let's extract the needed things from here
+				//we can assume that the next 'node' is actually gonna be the node with the attributes we need!
+				//so we don't have to parse things again
+				nodeWithNeededElements = nodeBeingInspected.getFirstChild();
+				NamedNodeMap neededAttributesNodeMap = nodeWithNeededElements.getAttributes();
+				this.signatureId = neededAttributesNodeMap.getNamedItem("signatureId") != null ? neededAttributesNodeMap
+					.getNamedItem("signatureId").getNodeValue() : "";
+				this.intentionString = neededAttributesNodeMap.getNamedItem("intention") != null ? neededAttributesNodeMap
+					.getNamedItem("intention").getNodeValue() : "";
+				this.descriptionString = neededAttributesNodeMap.getNamedItem("description") != null ? neededAttributesNodeMap
+					.getNamedItem("description").getNodeValue() : "";
+				this.roleString = neededAttributesNodeMap.getNamedItem("roleOfSigner") != null ? neededAttributesNodeMap
+					.getNamedItem("roleOfSigner").getNodeValue() : "";
+				
+			    }
+			}
+		    }
+		}
+	    }
 	    debugln("Document element signatureId attribute: " + signatureId);
 	    debugln("Document element intention content: " + intentionString);
 	    debugln("Document element description content: " + descriptionString);
 	    debugln("Document element roleString content: " + roleString);
-	    if (signatureId.isEmpty() || intentionString.isEmpty() || descriptionString.isEmpty())
+	    if (signatureId == null || intentionString == null || descriptionString == null || signatureId.isEmpty()
+		    || intentionString.isEmpty() || descriptionString.isEmpty())
 		throw new RuntimeException("Conteudo da assinatura mal formado, id, intenção ou descrição não foram encontrados");
 	    debugln("Parsed the XML");
 
 	    canSign = true;
 
-	} catch (MalformedURLException ex) {
-	    Logger.getLogger(this.getName()).log(Level.SEVERE, null, ex);
-	    JOptionPane.showMessageDialog(this, ex, "Erro", JOptionPane.ERROR_MESSAGE);
-	} catch (IOException ex) {
-	    Logger.getLogger(this.getName()).log(Level.SEVERE, null, ex);
-	    JOptionPane.showMessageDialog(this, ex, "Erro", JOptionPane.ERROR_MESSAGE);
+	    //	} catch (MalformedURLException ex) {
+	    //	    Logger.getLogger(this.getName()).log(Level.SEVERE, null, ex);
+	    //	    JOptionPane.showMessageDialog(this, ex, "Erro", JOptionPane.ERROR_MESSAGE);
+	    //	} catch (IOException ex) {
+	    //	    Logger.getLogger(this.getName()).log(Level.SEVERE, null, ex);
+	    //	    JOptionPane.showMessageDialog(this, ex, "Erro", JOptionPane.ERROR_MESSAGE);
 	} catch (RuntimeException ex) {
 	    Logger.getLogger(this.getName()).log(Level.SEVERE, null, ex);
 	    JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
@@ -361,8 +385,7 @@ public class MainWindow extends JApplet {
 	    Object[] timeStamperReturn = ts.signatureTimeStamp(signedContent, tsaURL);
 	    if (timeStamperReturn != null) {
 		signedContent = (byte[]) timeStamperReturn[0];
-		DERGeneralizedTime generalizedTime = (DERGeneralizedTime) timeStamperReturn[1];
-		timestampMarkerTextField.setText(generalizedTime.getDate().toLocaleString());
+		timestampMarkerTextField.setText(((Date) timeStamperReturn[1]).toLocaleString());
 	    }
 	    else {
 		JOptionPane.showMessageDialog(this, "Falhou a criação da assinatura", "Erro", JOptionPane.ERROR_MESSAGE);
