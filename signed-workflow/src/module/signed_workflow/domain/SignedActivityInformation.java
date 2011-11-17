@@ -5,7 +5,7 @@ package module.signed_workflow.domain;
 
 import java.io.Serializable;
 
-import module.signed_workflow.domain.ActivitySignatureData.ActivitySignatureDataBean;
+import module.signed_workflow.domain.data.ActivitySignatureDataBean;
 import module.workflow.activities.ActivityInformation;
 import module.workflow.activities.WorkflowActivity;
 import module.workflow.domain.WorkflowProcess;
