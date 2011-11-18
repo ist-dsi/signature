@@ -1,2 +1,2 @@
 name=signature
-depends=core,fileSupport,organization
+depends=core,fileSupport,organization,organization-ist
