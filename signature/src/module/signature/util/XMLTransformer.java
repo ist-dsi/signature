@@ -13,8 +13,6 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import module.signature.scripts.CreateExampleSignatureData;
-
 import org.apache.xalan.transformer.TransformerImpl;
 
 /**
