@@ -37,7 +37,6 @@ class data.MultipleObjectSignatureDataAggregator extends data.ObjectSignatureDat
  * Signature persistence - always in files
  */
  
-external class .pt.ist.fenixframework.plugins.fileSupport.domain.GenericFile;
 
 //we must create this kind of file otherwise we won't succeed in creating relations
 //directly with the GenericFile
