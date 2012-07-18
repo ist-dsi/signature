@@ -1,0 +1,134 @@
+package module.signature.domain; 
+
+enum module.signature.domain.data.SignatureFormat   as SignatureFormat;
+enum module.signature.domain.data.SignatureDataFormat   as SignatureDataFormat;
+
+class SignatureSystemRoot {
+}
+
+
+class Signature {
+	DateTime createdDateTime;
+	SignatureFormat signatureFormat;
+	Boolean signed;
+}
+
+class data.SignatureData {
+	SignatureDataFormat signatureDataFormat;
+	String signatureDescription;
+	String signatureIntention;
+	String signatureId;
+	DateTime creationDateTime; 
+}
+
+class data.CounterSignatureData extends data.SignatureData {
+}
+
+class data.FileSignatureData extends data.SignatureData {
+}
+
+class data.ObjectSignatureData extends data.SignatureData {
+}
+
+class data.MultipleObjectSignatureDataAggregator extends data.ObjectSignatureData {
+}
+
+/*
+ * Signature persistence - always in files
+ */
+ 
+
+//we must create this kind of file otherwise we won't succeed in creating relations
+//directly with the GenericFile
+class SignatureFile extends .pt.ist.fenixframework.plugins.fileSupport.domain.GenericFile {
+}
+class SignatureDataFile extends .pt.ist.fenixframework.plugins.fileSupport.domain.GenericFile {
+}
+
+/*
+ * Relations
+ */
+// the persistence of the signatures is assured through these relations with a genericFile
+
+relation SignatureSignatureFile {
+	Signature playsRole signatureDomainObject {
+		multiplicity 1..1;
+	}
+	SignatureFile playsRole persistedSignature {
+		multiplicity 1..1;
+	}
+} 
+
+//let's also persist the original document to be signed with a relation between GenericFile and 
+//SignatureData
+
+relation SignatureDataSignatureDataFile {
+	data.SignatureData playsRole originalSignatureData {
+		multiplicity 1..1;
+	}
+	SignatureDataFile playsRole signatureDataOriginalContentFile  {
+		multiplicity 1..1;
+	}
+}
+
+
+
+relation SignatureDataUserPending {
+	.pt.ist.bennu.core.domain.User playsRole userToSignPendingSignature;
+	data.SignatureData playsRole pendingSignatures {
+		multiplicity *;
+	} 
+}
+
+relation SignatureUserSigned {
+	.pt.ist.bennu.core.domain.User playsRole signedUser {
+		multiplicity 1..1;
+	}
+	Signature playsRole signedSignatures {
+		multiplicity *;
+	} 
+}
+
+relation SignatureSignatureData {
+	data.SignatureData playsRole signatureData {
+		multiplicity 1..1;
+	}
+	Signature playsRole signature {
+		multiplicity 1;
+	}
+}
+
+
+relation CounterSignatureDataSignature {
+	Signature playsRole counterSignedSignature {
+		multiplicity 1;
+	}
+	data.CounterSignatureData playsRole counterSignatures {
+		multiplicity *;
+	}
+}
+
+relation CounterSignatureDataCounterSignatureData {
+	data.CounterSignatureData playsRole nextCounterSignatureData;
+	data.CounterSignatureData playsRole previousCounterSignatureData;
+}
+
+relation MultipleObjectSignatureDataAggregatorObjectSignatureData {
+	data.MultipleObjectSignatureDataAggregator playsRole multipleObjectSignatureDataObject;
+	data.ObjectSignatureData playsRole signatureObjects {
+		multiplicity *;
+	}
+}
+	
+	
+
+
+	
+// Root relations
+
+relation SignatureSystemRootSignature {
+	Signature playsRole signatures {
+		multiplicity *;
+	}
+	SignatureSystemRoot playsRole signatureSystem;
+}

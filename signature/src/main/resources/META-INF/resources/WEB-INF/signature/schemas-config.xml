@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE schemas SYSTEM "../fenix-renderers-schemas.dtd" []>
+<schemas>
+<!--  
+<schema name="viewSignature" type="module.signature.domain.SignatureIntention"
+			bundle="SIGNATURE_RESOURCES">
+	<slot name="createdDateTime"  key="label.signature.createdDateTime" />
+	<slot name="sealedDateTime" key="label.signature.sealedDateTime" />
+	<slot name="sealed" key="label.signature.sealed" />
+	<slot name="description" key="label.signature.description"  />
+</schema>
+
+-->
+
+</schemas>
