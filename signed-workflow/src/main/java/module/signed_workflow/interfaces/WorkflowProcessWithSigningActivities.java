@@ -30,7 +30,7 @@ import module.signed_workflow.domain.ActivitySignatureData;
 import module.signed_workflow.domain.WorkflowProcessSignatureData;
 import module.workflow.activities.WorkflowActivity;
 import module.workflow.domain.WorkflowProcess;
-import myorg.domain.User;
+import pt.ist.bennu.core.domain.User;
 
 /**
  * 

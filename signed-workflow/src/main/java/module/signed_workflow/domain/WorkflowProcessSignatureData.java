@@ -31,8 +31,8 @@ import module.signature.domain.data.MultipleObjectSignatureDataAggregator;
 import module.signature.domain.data.SignatureData;
 import module.signature.domain.data.SignatureDataFormat;
 import module.workflow.domain.WorkflowProcess;
-import myorg.domain.User;
-import myorg.domain.exceptions.DomainException;
+import pt.ist.bennu.core.domain.User;
+import pt.ist.bennu.core.domain.exceptions.DomainException;
 import pt.ist.fenixWebFramework.services.Service;
 import pt.utl.ist.fenix.tools.predicates.Predicate;
 

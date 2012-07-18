@@ -28,7 +28,7 @@ import java.io.Serializable;
 
 import module.signature.domain.data.GenericSourceOfInfoForSignatureDataBean;
 import module.workflow.domain.ProcessFile;
-import myorg.util.BundleUtil;
+import pt.ist.bennu.core.util.BundleUtil;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;

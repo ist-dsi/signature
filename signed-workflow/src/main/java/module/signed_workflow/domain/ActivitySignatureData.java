@@ -32,7 +32,7 @@ import module.signed_workflow.interfaces.SigningProcessActivity;
 import module.workflow.activities.ActivityInformation;
 import module.workflow.activities.WorkflowActivity;
 import module.workflow.domain.WorkflowProcess;
-import myorg.domain.User;
+import pt.ist.bennu.core.domain.User;
 
 /**
  * 

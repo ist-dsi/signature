@@ -26,7 +26,7 @@ package module.signed_workflow.xmlconverters;
 
 import module.workflow.domain.ProcessFile;
 import module.workflow.domain.WorkflowProcess;
-import myorg.util.BundleUtil;
+import pt.ist.bennu.core.util.BundleUtil;
 
 import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.MarshallingContext;

@@ -1,5 +1,5 @@
 /*
- * @(#)SigningProcessActivity.java
+ * @(#)WorkflowSignatureException.java
  *
  * Copyright 2011 Instituto Superior Tecnico
  * Founding Authors: João Antunes
@@ -22,20 +22,30 @@
  *   along with the Digital Signature Workflow Integration Module. If not, see <http://www.gnu.org/licenses/>.
  * 
  */
-package module.signed_workflow.interfaces;
+package module.signed_workflow.exceptions;
 
-import module.workflow.domain.WorkflowProcess;
-import myorg.domain.User;
+import java.util.ResourceBundle;
+
+import pt.ist.bennu.core.domain.exceptions.DomainException;
 
 /**
- * Interface used to mark all of the activities which are part of a Signature
- * proccess
  * 
  * @author João Antunes
  * 
  */
-public interface SigningProcessActivity {
-    
-    public void validateSignatureDataCanBeShown(User userWhoMadeTheRequest, WorkflowProcess process);
+public class WorkflowSignatureException extends DomainException {
+
+    public WorkflowSignatureException(String string) {
+	super(string, ResourceBundle.getBundle("resources/Signed-workflowResources"));
+    }
+
+    public WorkflowSignatureException(String string, Exception e) {
+	super(string, e, ResourceBundle.getBundle("resources/Signed-workflowResources"));
+    }
+
+    /**
+     * default version ID
+     */
+    private static final long serialVersionUID = 1L;
 
 }

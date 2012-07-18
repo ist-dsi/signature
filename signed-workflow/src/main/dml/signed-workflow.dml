@@ -1,13 +1,10 @@
 package module.signed_workflow.domain;
 
-
-external class .module.signature.domain.data.ObjectSignatureData; 
-
 valueType java.lang.Class as Class {
         externalizeWith {
                 String getName();
         }
-        internalizeWith myorg.domain.util.ClassInternalizer.internalize();
+        internalizeWith pt.ist.bennu.core.domain.util.ClassInternalizer.internalize();
 }
 
 

@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Locale;
 
 import module.workflow.domain.WorkflowProcessComment;
-import myorg.domain.User;
+import pt.ist.bennu.core.domain.User;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
