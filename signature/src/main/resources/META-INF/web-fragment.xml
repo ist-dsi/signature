@@ -18,8 +18,6 @@
    <name>scheduler-plugin</name>
    <name>lucene-indexing-plugin</name>
    <name>organization-ist</name>
-   <name>remote</name>
-   <name>remote-plugin</name>
    <name>file-management</name>
    <name>bennu-vaadin</name>
    <name>expenditure-tracking</name>
@@ -32,8 +30,8 @@
    <name>dashboard</name>
    <name>external-accounting-integration</name>
    <name>db-utils</name>
-   <name>web-service-utils</name>
    <name>messaging</name>
+   <name>web-service-utils</name>
    <!-- [END OF BENNU GENERATED FRAGMENT] -->
 		</after>
 		<before>
