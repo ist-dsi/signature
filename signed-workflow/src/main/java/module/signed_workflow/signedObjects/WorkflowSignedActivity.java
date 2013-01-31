@@ -35,6 +35,6 @@ import module.workflow.domain.WorkflowProcess;
  * 
  */
 public abstract class WorkflowSignedActivity<SigData extends ObjectSignatureData, P extends WorkflowProcess, AI extends ActivityInformation<P>>
-	extends WorkflowActivity<P, AI> {
+		extends WorkflowActivity<P, AI> {
 
 }

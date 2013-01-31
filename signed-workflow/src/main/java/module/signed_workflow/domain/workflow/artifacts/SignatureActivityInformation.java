@@ -36,26 +36,26 @@ import module.workflow.domain.WorkflowProcess;
  */
 public class SignatureActivityInformation<P extends WorkflowProcess> extends ActivityInformation<P> {
 
-    private final Signature signature;
+	private final Signature signature;
 
-    public SignatureActivityInformation(P process,
-	    WorkflowActivity<? extends WorkflowProcess, ? extends ActivityInformation> activity, Signature signature) {
-	super(process, activity);
-	this.signature = signature;
-    }
+	public SignatureActivityInformation(P process,
+			WorkflowActivity<? extends WorkflowProcess, ? extends ActivityInformation> activity, Signature signature) {
+		super(process, activity);
+		this.signature = signature;
+	}
 
-    public Signature getSignature() {
-	return signature;
-    }
+	public Signature getSignature() {
+		return signature;
+	}
 
-    @Override
-    public boolean hasAllneededInfo() {
-	return signature != null;
-    }
+	@Override
+	public boolean hasAllneededInfo() {
+		return signature != null;
+	}
 
-    /**
-     * Default serial version
-     */
-    private static final long serialVersionUID = 1L;
+	/**
+	 * Default serial version
+	 */
+	private static final long serialVersionUID = 1L;
 
 }

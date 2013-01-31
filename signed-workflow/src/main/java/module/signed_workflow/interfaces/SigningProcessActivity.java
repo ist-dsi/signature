@@ -35,7 +35,7 @@ import pt.ist.bennu.core.domain.User;
  * 
  */
 public interface SigningProcessActivity {
-    
-    public void validateSignatureDataCanBeShown(User userWhoMadeTheRequest, WorkflowProcess process);
+
+	public void validateSignatureDataCanBeShown(User userWhoMadeTheRequest, WorkflowProcess process);
 
 }

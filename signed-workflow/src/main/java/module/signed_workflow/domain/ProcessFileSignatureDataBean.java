@@ -30,9 +30,6 @@ import module.signature.domain.data.GenericSourceOfInfoForSignatureDataBean;
 import module.workflow.domain.ProcessFile;
 import pt.ist.bennu.core.util.BundleUtil;
 
-import com.thoughtworks.xstream.annotations.XStreamAlias;
-import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
-
 /**
  * Wrapper bean that represents a {@link ProcessFile}
  * 
@@ -42,39 +39,40 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 @XStreamAlias("processFile")
 public class ProcessFileSignatureDataBean implements Serializable {
 
-    /**
-     * default serial version
-     */
-    private static final long serialVersionUID = 1L;
-    
-    private final String displayName;
+	/**
+	 * default serial version
+	 */
+	private static final long serialVersionUID = 1L;
 
-    private final String filename;
+	private final String displayName;
 
-    @XStreamAsAttribute
-    private final String contentType;
+	private final String filename;
 
-    private final String presentationName;
+	@XStreamAsAttribute
+	private final String contentType;
 
-    private final String fileClassPresentableName;
+	private final String presentationName;
 
-    private final String hexSHA1MessageDigest;
+	private final String fileClassPresentableName;
 
-    @XStreamAsAttribute
-    private final boolean isDeleted;
+	private final String hexSHA1MessageDigest;
 
-     public ProcessFileSignatureDataBean(ProcessFile processFile) {
-	this.displayName = GenericSourceOfInfoForSignatureDataBean.signalBlankString(processFile.getDisplayName());
-	this.filename = GenericSourceOfInfoForSignatureDataBean.signalBlankString(processFile.getFilename());
-	this.contentType = processFile.getContentType();
-	this.presentationName = GenericSourceOfInfoForSignatureDataBean.signalBlankString(processFile.getPresentationName());
-	this.fileClassPresentableName = GenericSourceOfInfoForSignatureDataBean.signalBlankString(BundleUtil
-		.getLocalizedNamedFroClass(processFile.getClass()));
-	
-	this.hexSHA1MessageDigest = processFile.getHexSHA1MessageDigest();
+	@XStreamAsAttribute
+	private final boolean isDeleted;
 
-	this.isDeleted = processFile.hasProcessWithDeleteFile();
-	 
-    }
+	public ProcessFileSignatureDataBean(ProcessFile processFile) {
+		this.displayName = GenericSourceOfInfoForSignatureDataBean.signalBlankString(processFile.getDisplayName());
+		this.filename = GenericSourceOfInfoForSignatureDataBean.signalBlankString(processFile.getFilename());
+		this.contentType = processFile.getContentType();
+		this.presentationName = GenericSourceOfInfoForSignatureDataBean.signalBlankString(processFile.getPresentationName());
+		this.fileClassPresentableName =
+				GenericSourceOfInfoForSignatureDataBean.signalBlankString(BundleUtil.getLocalizedNamedFroClass(processFile
+						.getClass()));
+
+		this.hexSHA1MessageDigest = processFile.getHexSHA1MessageDigest();
+
+		this.isDeleted = processFile.hasProcessWithDeleteFile();
+
+	}
 
 }

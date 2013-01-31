@@ -37,18 +37,17 @@ import module.workflow.domain.WorkflowProcess;
  * 
  */
 public abstract class SignedActivityInformation<P extends WorkflowProcess> extends ActivityInformation<WorkflowProcess> implements
-	Serializable {
+		Serializable {
 
-    private ActivitySignatureDataBean transientActivitySignatureBean;
+	private ActivitySignatureDataBean transientActivitySignatureBean;
 
-    protected SignedActivityInformation(WorkflowProcess process,
-	    WorkflowActivity<? extends WorkflowProcess, ? extends ActivityInformation> activity) {
-	super(process, activity);
-    }
+	protected SignedActivityInformation(WorkflowProcess process,
+			WorkflowActivity<? extends WorkflowProcess, ? extends ActivityInformation> activity) {
+		super(process, activity);
+	}
 
-    public ActivitySignatureDataBean getTransientActivitySignatureBean() {
-	return transientActivitySignatureBean;
-    }
-
+	public ActivitySignatureDataBean getTransientActivitySignatureBean() {
+		return transientActivitySignatureBean;
+	}
 
 }

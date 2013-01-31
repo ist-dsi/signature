@@ -42,20 +42,20 @@ import pt.ist.bennu.core.domain.User;
  */
 public interface WorkflowProcessWithSigningActivities {
 
-    /**
-     * 
-     * @param pendingUser
-     *            the user that will be set as a pending one on the newly
-     *            created SignatureData or null if none is to be set
-     * @param activityClass
-     *            the class of the {@link WorkflowActivity} that should provide
-     *            an hint for the Process to know who to delegate the creation
-     *            of the SignatureData to
-     * @return a newly created ActivitySignatureData with a Document to be
-     *         signed already generated
-     */
-    public abstract ActivitySignatureData createActivitySignatureData(User pendingUser, Class activityClass);
+	/**
+	 * 
+	 * @param pendingUser
+	 *            the user that will be set as a pending one on the newly
+	 *            created SignatureData or null if none is to be set
+	 * @param activityClass
+	 *            the class of the {@link WorkflowActivity} that should provide
+	 *            an hint for the Process to know who to delegate the creation
+	 *            of the SignatureData to
+	 * @return a newly created ActivitySignatureData with a Document to be
+	 *         signed already generated
+	 */
+	public abstract ActivitySignatureData createActivitySignatureData(User pendingUser, Class activityClass);
 
-    public abstract List<WorkflowProcessSignatureData> getPendingOrFinishedAssociatedSignatureDatas();
+	public abstract List<WorkflowProcessSignatureData> getPendingOrFinishedAssociatedSignatureDatas();
 
 }

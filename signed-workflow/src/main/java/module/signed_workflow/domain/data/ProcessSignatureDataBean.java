@@ -36,20 +36,20 @@ import module.workflow.domain.WorkflowProcess;
  */
 public abstract class ProcessSignatureDataBean<P extends WorkflowProcess> extends GenericSourceOfInfoForSignatureDataBean {
 
-    private final WorkflowProcess workflowProcess;
+	private final WorkflowProcess workflowProcess;
 
-    public ProcessSignatureDataBean(SignatureData signatureData, WorkflowProcess process) {
-	super(signatureData);
-	this.workflowProcess = process;
-    }
+	public ProcessSignatureDataBean(SignatureData signatureData, WorkflowProcess process) {
+		super(signatureData);
+		this.workflowProcess = process;
+	}
 
-    public WorkflowProcess getWorkflowProcess() {
-	return workflowProcess;
-    }
-    /**
-     * default serial verson
-     */
-    private static final long serialVersionUID = 1L;
+	public WorkflowProcess getWorkflowProcess() {
+		return workflowProcess;
+	}
 
+	/**
+	 * default serial verson
+	 */
+	private static final long serialVersionUID = 1L;
 
 }
