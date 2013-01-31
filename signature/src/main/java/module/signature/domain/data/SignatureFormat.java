@@ -34,30 +34,30 @@ import module.signature.util.XAdESValidator;
  * 
  */
 public enum SignatureFormat {
-    XAdEST {
-	
-	private final XAdESValidator xAdESValidator = new XAdESValidator();
+	XAdEST {
 
-	@Override
-	public boolean validateSignature(InputStream signatureContent) {
-	    return xAdESValidator.validateXMLSignature(signatureContent);
-	}
+		private final XAdESValidator xAdESValidator = new XAdESValidator();
 
-	@Override
-	public boolean validateSignature(byte[] signatureContent) {
-	    return xAdESValidator.validateXMLSignature(signatureContent);
-	}
+		@Override
+		public boolean validateSignature(InputStream signatureContent) {
+			return xAdESValidator.validateXMLSignature(signatureContent);
+		}
 
-	@Override
-	public String getContentType() {
-	    return "application/xml-external-parsed-entity";
-	}
-    };
-    
-    public abstract boolean validateSignature(InputStream signatureContent);
+		@Override
+		public boolean validateSignature(byte[] signatureContent) {
+			return xAdESValidator.validateXMLSignature(signatureContent);
+		}
 
-    public abstract boolean validateSignature(byte[] signatureContent);
+		@Override
+		public String getContentType() {
+			return "application/xml-external-parsed-entity";
+		}
+	};
 
-    public abstract String getContentType();
+	public abstract boolean validateSignature(InputStream signatureContent);
+
+	public abstract boolean validateSignature(byte[] signatureContent);
+
+	public abstract String getContentType();
 
 }

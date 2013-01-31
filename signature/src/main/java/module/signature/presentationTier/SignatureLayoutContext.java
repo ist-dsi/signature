@@ -24,9 +24,9 @@
  */
 package module.signature.presentationTier;
 
-import pt.ist.bennu.core.presentationTier.Context;
-
 import org.apache.struts.action.ActionForward;
+
+import pt.ist.bennu.core.presentationTier.Context;
 
 /**
  * 
@@ -35,12 +35,12 @@ import org.apache.struts.action.ActionForward;
  */
 public class SignatureLayoutContext extends Context {
 
-    @Override
-    public ActionForward forward(String forward) {
-	return new ActionForward(forward);
-    }
+	@Override
+	public ActionForward forward(String forward) {
+		return new ActionForward(forward);
+	}
 
-    public ActionForward forward() {
-	return forward("");
-    }
+	public ActionForward forward() {
+		return forward("");
+	}
 }
