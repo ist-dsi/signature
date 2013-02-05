@@ -34,6 +34,6 @@ import module.signature.domain.data.SignatureFormat;
  */
 public interface SigningActivityInformation {
 
-	public SignatureFormat getSignatureFormat();
+    public SignatureFormat getSignatureFormat();
 
 }

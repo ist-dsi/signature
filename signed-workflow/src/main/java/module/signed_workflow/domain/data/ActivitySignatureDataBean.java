@@ -42,43 +42,43 @@ import org.joda.time.DateTime;
  * 
  */
 public abstract class ActivitySignatureDataBean<Activity extends WorkflowActivity> extends
-		ProcessSignatureDataBean<WorkflowProcess> {
+        ProcessSignatureDataBean<WorkflowProcess> {
 
-	/**
-	 * Default serial version ID
-	 */
-	private static final long serialVersionUID = 1L;
-	private static Random randomNrForSigIdGeneration = new Random();
-	private final Class<Activity> activity;
+    /**
+     * Default serial version ID
+     */
+    private static final long serialVersionUID = 1L;
+    private static Random randomNrForSigIdGeneration = new Random();
+    private final Class<Activity> activity;
 
-	private final DateTime dataSnapshotDate;
+    private final DateTime dataSnapshotDate;
 
-	protected ActivitySignatureDataBean(WorkflowProcess process, Class<Activity> activity, SignatureData signatureData) {
-		super(signatureData, process);
-		//default constructor private so that it isn't used outside of this file
-		this.dataSnapshotDate = new DateTime();
-		this.activity = activity;
-	}
+    protected ActivitySignatureDataBean(WorkflowProcess process, Class<Activity> activity, SignatureData signatureData) {
+        super(signatureData, process);
+        //default constructor private so that it isn't used outside of this file
+        this.dataSnapshotDate = new DateTime();
+        this.activity = activity;
+    }
 
-	public DateTime getDataSnapshotDate() {
-		return dataSnapshotDate;
-	}
+    public DateTime getDataSnapshotDate() {
+        return dataSnapshotDate;
+    }
 
-	/**
-	 * 
-	 * @return the SignatureId, this id should be unique and will identify the
-	 *         signed document
-	 */
-	@Override
-	public String generateSignatureId() {
-		DateTime currentDateTime = new DateTime();
-		String signatureId =
-				getWorkflowProcess().getProcessNumber() + "-" + activity.getSimpleName() + "-" + currentDateTime.getYear() + "-"
-						+ currentDateTime.getMonthOfYear() + "-" + currentDateTime.getDayOfMonth() + "_"
-						+ currentDateTime.getMillis() + "_" + randomNrForSigIdGeneration.nextInt(100000);
-		signatureId = StringUtils.replaceChars(signatureId, ' ', '_');
-		return signatureId;
+    /**
+     * 
+     * @return the SignatureId, this id should be unique and will identify the
+     *         signed document
+     */
+    @Override
+    public String generateSignatureId() {
+        DateTime currentDateTime = new DateTime();
+        String signatureId =
+                getWorkflowProcess().getProcessNumber() + "-" + activity.getSimpleName() + "-" + currentDateTime.getYear() + "-"
+                        + currentDateTime.getMonthOfYear() + "-" + currentDateTime.getDayOfMonth() + "_"
+                        + currentDateTime.getMillis() + "_" + randomNrForSigIdGeneration.nextInt(100000);
+        signatureId = StringUtils.replaceChars(signatureId, ' ', '_');
+        return signatureId;
 
-	}
+    }
 
 }
