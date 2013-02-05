@@ -46,36 +46,36 @@ import pt.ist.fenixWebFramework.struts.annotations.Mapping;
 @Mapping(path = "/signatureAction")
 public class SignatureAction extends ContextBaseAction {
 
-	public ActionForward getSignatureContent(final ActionMapping mapping, final ActionForm form,
-			final HttpServletRequest request, final HttpServletResponse response) {
+    public ActionForward getSignatureContent(final ActionMapping mapping, final ActionForm form,
+            final HttpServletRequest request, final HttpServletResponse response) {
 
-		//	final SignatureData signatureDataObject = getSignatureDataObject(request);
-		//	//TODO in the future it might be a good idea to transmit the content XORed against some password or something to add an extra layer of sec.
-		//	//and it might make sense to make that encryption at the signaturedataformat class level and not here
-		//	
-		//		byte[] signatureDataContent = signatureDataObject.getContentToSign();
-		//	
-		//	try {
-		//	    OutputStream outputStream = response.getOutputStream();
-		//	    response.setContentType("text/plain");
-		//	    response.setContentLength(signatureDataContent.length);
-		//	    
-		//	    outputStream.write(signatureDataContent);
-		//	    outputStream.flush();
-		//	    outputStream.close();
-		//	    
-		//	} catch (IOException e) {
-		//	    e.printStackTrace();
-		//	    throw new DomainException();
-		//	}
-		//	    
-		return null;
-		//	
-		//	
-	}
+        //	final SignatureData signatureDataObject = getSignatureDataObject(request);
+        //	//TODO in the future it might be a good idea to transmit the content XORed against some password or something to add an extra layer of sec.
+        //	//and it might make sense to make that encryption at the signaturedataformat class level and not here
+        //	
+        //		byte[] signatureDataContent = signatureDataObject.getContentToSign();
+        //	
+        //	try {
+        //	    OutputStream outputStream = response.getOutputStream();
+        //	    response.setContentType("text/plain");
+        //	    response.setContentLength(signatureDataContent.length);
+        //	    
+        //	    outputStream.write(signatureDataContent);
+        //	    outputStream.flush();
+        //	    outputStream.close();
+        //	    
+        //	} catch (IOException e) {
+        //	    e.printStackTrace();
+        //	    throw new DomainException();
+        //	}
+        //	    
+        return null;
+        //	
+        //	
+    }
 
-	private SignatureData getSignatureDataObject(HttpServletRequest request) {
-		return getDomainObject(request, "contentId");
-	}
+    private SignatureData getSignatureDataObject(HttpServletRequest request) {
+        return getDomainObject(request, "contentId");
+    }
 
 }

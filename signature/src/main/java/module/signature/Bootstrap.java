@@ -35,23 +35,23 @@ import pt.ist.fenixWebFramework.servlets.filters.contentRewrite.RequestChecksumF
  * 
  */
 public class Bootstrap {
-	static {
-		RequestChecksumFilter.registerFilterRule(new ChecksumPredicate() {
-			@Override
-			public boolean shouldFilter(HttpServletRequest httpServletRequest) {
-				return !(httpServletRequest.getRequestURI().endsWith("/signatureAction.do")
-						&& httpServletRequest.getQueryString() != null && httpServletRequest.getQueryString().contains(
-						"method=receiveSignature"));
-			}
-		});
+    static {
+        RequestChecksumFilter.registerFilterRule(new ChecksumPredicate() {
+            @Override
+            public boolean shouldFilter(HttpServletRequest httpServletRequest) {
+                return !(httpServletRequest.getRequestURI().endsWith("/signatureAction.do")
+                        && httpServletRequest.getQueryString() != null && httpServletRequest.getQueryString().contains(
+                        "method=receiveSignature"));
+            }
+        });
 
-		RequestChecksumFilter.registerFilterRule(new ChecksumPredicate() {
-			@Override
-			public boolean shouldFilter(HttpServletRequest httpServletRequest) {
-				return !(httpServletRequest.getRequestURI().endsWith("/signatureAction.do")
-						&& httpServletRequest.getQueryString() != null && httpServletRequest.getQueryString().contains(
-						"method=getLogsToSign"));
-			}
-		});
-	}
+        RequestChecksumFilter.registerFilterRule(new ChecksumPredicate() {
+            @Override
+            public boolean shouldFilter(HttpServletRequest httpServletRequest) {
+                return !(httpServletRequest.getRequestURI().endsWith("/signatureAction.do")
+                        && httpServletRequest.getQueryString() != null && httpServletRequest.getQueryString().contains(
+                        "method=getLogsToSign"));
+            }
+        });
+    }
 }

@@ -48,25 +48,25 @@ import pt.ist.fenixWebFramework.struts.annotations.Mapping;
  */
 public class InterfaceCreationAction extends ContextBaseAction {
 
-	@CreateNodeAction(bundle = "SIGNATURE_RESOURCES", key = "add.node.signatures.interface", groupKey = "label.module.signature")
-	public final ActionForward createAnnouncmentNodes(final ActionMapping mapping, final ActionForm form,
-			final HttpServletRequest request, final HttpServletResponse response) throws Exception {
-		final VirtualHost virtualHost = getDomainObject(request, "virtualHostToManageId");
-		final Node node = getDomainObject(request, "parentOfNodesToManageId");
+    @CreateNodeAction(bundle = "SIGNATURE_RESOURCES", key = "add.node.signatures.interface", groupKey = "label.module.signature")
+    public final ActionForward createAnnouncmentNodes(final ActionMapping mapping, final ActionForm form,
+            final HttpServletRequest request, final HttpServletResponse response) throws Exception {
+        final VirtualHost virtualHost = getDomainObject(request, "virtualHostToManageId");
+        final Node node = getDomainObject(request, "parentOfNodesToManageId");
 
-		final ActionNode homeNode =
-				ActionNode.createActionNode(virtualHost, node, "/signature", "pendingSignatures", "resources.SignatureResources",
-						"label.module.signature", UserGroup.getInstance());
+        final ActionNode homeNode =
+                ActionNode.createActionNode(virtualHost, node, "/signature", "pendingSignatures", "resources.SignatureResources",
+                        "label.module.signature", UserGroup.getInstance());
 
-		ActionNode.createActionNode(virtualHost, homeNode, "/signature", "pendingSignatures", "resources.SignatureResources",
-				"link.sideBar.signature.pendingSignatures", UserGroup.getInstance());
+        ActionNode.createActionNode(virtualHost, homeNode, "/signature", "pendingSignatures", "resources.SignatureResources",
+                "link.sideBar.signature.pendingSignatures", UserGroup.getInstance());
 
-		ActionNode.createActionNode(virtualHost, homeNode, "/signature", "concludedSignatures", "resources.SignatureResources",
-				"link.sideBar.signature.concludedSignatures", UserGroup.getInstance());
+        ActionNode.createActionNode(virtualHost, homeNode, "/signature", "concludedSignatures", "resources.SignatureResources",
+                "link.sideBar.signature.concludedSignatures", UserGroup.getInstance());
 
-		//	ActionNode.createActionNode(virtualHost, homeNode, "/signature", "configure", "resources.SignatureResources",
-		//		"link.sideBar.signature.configure", Role.getRole(RoleType.MANAGER));
+        //	ActionNode.createActionNode(virtualHost, homeNode, "/signature", "configure", "resources.SignatureResources",
+        //		"link.sideBar.signature.configure", Role.getRole(RoleType.MANAGER));
 
-		return forwardToMuneConfiguration(request, virtualHost, node);
-	}
+        return forwardToMuneConfiguration(request, virtualHost, node);
+    }
 }

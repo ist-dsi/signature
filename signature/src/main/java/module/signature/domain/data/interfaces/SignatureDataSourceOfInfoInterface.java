@@ -36,15 +36,15 @@ import module.signature.domain.data.SignatureDataFormat;
  */
 public interface SignatureDataSourceOfInfoInterface {
 
-	public SignatureDataFormat getSignatureDataFormat();
+    public SignatureDataFormat getSignatureDataFormat();
 
-	/**
-	 * 
-	 * @return the {@link SignatureData}, if it exists, associated with this
-	 *         bean
-	 */
-	public SignatureData getSignatureData();
+    /**
+     * 
+     * @return the {@link SignatureData}, if it exists, associated with this
+     *         bean
+     */
+    public SignatureData getSignatureData();
 
-	//    public SignatureData createSignatureData();
+    //    public SignatureData createSignatureData();
 
 }

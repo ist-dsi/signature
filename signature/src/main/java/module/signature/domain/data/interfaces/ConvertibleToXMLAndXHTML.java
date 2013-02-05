@@ -36,6 +36,6 @@ import javax.xml.transform.Source;
  */
 public interface ConvertibleToXMLAndXHTML {
 
-	public Source xsltSource();
+    public Source xsltSource();
 
 }

@@ -52,75 +52,75 @@ import javax.xml.transform.stream.StreamSource;
  */
 public class XMLTransformer {
 
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		if (args.length != 3) {
-			System.out.println("Wrong number of arguments. Got " + args.length + " arguments");
-			usage();
-		} else {
-			//let's open the files;
-			File xmlFile = new File(args[0]);
-			File xsltFile = new File(args[1]);
-			File destinationFile = new File(args[2]);
+    /**
+     * @param args
+     */
+    public static void main(String[] args) {
+        if (args.length != 3) {
+            System.out.println("Wrong number of arguments. Got " + args.length + " arguments");
+            usage();
+        } else {
+            //let's open the files;
+            File xmlFile = new File(args[0]);
+            File xsltFile = new File(args[1]);
+            File destinationFile = new File(args[2]);
 
-			//read the contents of the first and the second, and check if we can write on the third
-			//check if we can read the first two and write to the third
-			if (!xmlFile.canRead()) {
-				System.out.println("Could not read the XML file at: " + args[0]);
-			}
-			if (!xsltFile.canRead()) {
-				System.out.println("Could not read the XSLT file at: " + args[1]);
-			}
-			try {
+            //read the contents of the first and the second, and check if we can write on the third
+            //check if we can read the first two and write to the third
+            if (!xmlFile.canRead()) {
+                System.out.println("Could not read the XML file at: " + args[0]);
+            }
+            if (!xsltFile.canRead()) {
+                System.out.println("Could not read the XSLT file at: " + args[1]);
+            }
+            try {
 
-				destinationFile.createNewFile();
-				if (!destinationFile.canWrite()) {
-					System.out.println("Could not write to the destination file at: " + args[2]);
-				}
-				if (!destinationFile.canWrite() || !xsltFile.canRead() || !xmlFile.canRead()) {
-					usage();
-					System.exit(-1);
-					return;
-				}
-				System.out.println("Transforming " + args[0] + " into " + args[2] + " using " + args[1]);
+                destinationFile.createNewFile();
+                if (!destinationFile.canWrite()) {
+                    System.out.println("Could not write to the destination file at: " + args[2]);
+                }
+                if (!destinationFile.canWrite() || !xsltFile.canRead() || !xmlFile.canRead()) {
+                    usage();
+                    System.exit(-1);
+                    return;
+                }
+                System.out.println("Transforming " + args[0] + " into " + args[2] + " using " + args[1]);
 
-				StreamSource xmlSourceFile = new StreamSource(xmlFile);
-				StreamSource xsltSourceFile = new StreamSource(xsltFile);
-				StreamResult destinationResultFile = new StreamResult(new FileOutputStream(destinationFile));
+                StreamSource xmlSourceFile = new StreamSource(xmlFile);
+                StreamSource xsltSourceFile = new StreamSource(xsltFile);
+                StreamResult destinationResultFile = new StreamResult(new FileOutputStream(destinationFile));
 
-				TransformerFactory tFactory = TransformerFactory.newInstance();
-				TransformerImpl transformer = (TransformerImpl) tFactory.newTransformer(xsltSourceFile);
+                TransformerFactory tFactory = TransformerFactory.newInstance();
+                TransformerImpl transformer = (TransformerImpl) tFactory.newTransformer(xsltSourceFile);
 
-				transformer.transform(xmlSourceFile, destinationResultFile);
+                transformer.transform(xmlSourceFile, destinationResultFile);
 
-				System.out.println("Transformed " + args[0] + " into " + args[2] + " using " + args[1]);
+                System.out.println("Transformed " + args[0] + " into " + args[2] + " using " + args[1]);
 
-			} catch (TransformerConfigurationException e) {
-				System.out.println(e.getMessage());
-				e.printStackTrace();
-				usage();
-			} catch (TransformerException e) {
-				System.out.println(e.getMessage());
-				e.printStackTrace();
-				usage();
+            } catch (TransformerConfigurationException e) {
+                System.out.println(e.getMessage());
+                e.printStackTrace();
+                usage();
+            } catch (TransformerException e) {
+                System.out.println(e.getMessage());
+                e.printStackTrace();
+                usage();
 
-			} catch (IOException e) {
-				System.out.println(e.getMessage());
-				e.printStackTrace();
-				usage();
-			}
+            } catch (IOException e) {
+                System.out.println(e.getMessage());
+                e.printStackTrace();
+                usage();
+            }
 
-		}
+        }
 
-	}
+    }
 
-	private static void usage() {
-		System.out.println("Please execute the app with the following parameters:");
-		System.out.println("appName pathToXMLFile pathToXSLTFile destinationFile");
-		System.out.println("\n**Note**: this will override any content that destinationFile might already have");
+    private static void usage() {
+        System.out.println("Please execute the app with the following parameters:");
+        System.out.println("appName pathToXMLFile pathToXSLTFile destinationFile");
+        System.out.println("\n**Note**: this will override any content that destinationFile might already have");
 
-	}
+    }
 
 }
