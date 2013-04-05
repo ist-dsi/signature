@@ -1,0 +1,25 @@
+package module.signed_workflow.domain;
+
+valueType java.lang.Class as Class {
+        externalizeWith {
+                String getName();
+        }
+        internalizeWith pt.ist.bennu.core.domain.util.ClassInternalizer.internalize();
+}
+
+
+class WorkflowProcessSignatureData extends .module.signature.domain.data.ObjectSignatureData {
+	String processId;
+	/*String userId?!?! or person who made it?! */
+}
+
+class ActivitySignatureData extends WorkflowProcessSignatureData {
+	Class activityClass;
+}
+
+relation WorkflowProcessSignatureDataWorkflowProcess {
+	WorkflowProcessSignatureData playsRole signatureData {
+		multiplicity *;
+	}
+	.module.workflow.domain.WorkflowProcess playsRole workflowProcess;
+}
